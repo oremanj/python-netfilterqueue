@@ -27,9 +27,9 @@ setup(
     license="BSD",
     author="Matthew Fox",
     author_email="matthew@kerkhofftech.ca",
-    url="https://github.com/kti/python-netfilter_queue",
+    url="https://github.com/kti/python-netfilterqueue",
     description="Python bindings for libnetfilter_queue",
-    long_description=open("README.txt").read(),
+    long_description=open("README.rst").read(),
     download_url="http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-%s.tar.gz" % VERSION,
     classifiers = [
         "Development Status :: 4 - Beta",
