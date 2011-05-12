@@ -5,6 +5,7 @@ VERSION = "0.1"
 try:
     # Use Cython
     from Cython.Distutils import build_ext
+    cmd = {"build_ext": build_ext}
     ext = Extension(
             "netfilterqueue",
             sources=["netfilterqueue.pyx",],
@@ -12,7 +13,7 @@ try:
         )
 except ImportError:
     # No Cython
-    build_ext = None
+    cmd = {}
     ext = Extension(
             "netfilterqueue",
             sources = ["netfilterqueue.c"],
@@ -20,7 +21,7 @@ except ImportError:
         )
 
 setup(
-    cmdclass = {"build_ext": build_ext},
+    cmdclass = cmd,
     ext_modules = [ext],
     name="NetfilterQueue",
     version=VERSION,

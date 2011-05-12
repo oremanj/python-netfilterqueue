@@ -32,7 +32,7 @@ From PyPI
 
 To install from PyPI by pip::
 
-    pip install netfilterqueue
+    pip install NetfilterQueue
 
 From source
 -----------
@@ -40,8 +40,8 @@ From source
 To install from source::
 
     wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.1.tar.gz
-    tar -xvzf netfilterqueue-0.1.tar.gz
-    cd netfilterqueue-0.1
+    tar -xvzf NetfilterQueue-0.1.tar.gz
+    cd NetfilterQueue-0.1
     python setup.py install
 
 Setup will use Cython if it is installed, regenerating the .c source from the .pyx before compiling the .so.
