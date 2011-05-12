@@ -1,7 +1,0 @@
-CHANGES.txt
-LICENSE.txt
-README.rst
-netfilterqueue.c
-netfilterqueue.pxd
-netfilterqueue.pyx
-setup.py
