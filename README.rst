@@ -26,7 +26,6 @@ The following script prints a short description of each packet before accepting 
     except KeyboardInterrupt:
         print
 
-
 To send packets destined for your LAN to the script, type something like::
 
     iptables -I INPUT -d 192.168.0.0/24 -j NFQUEUE --queue-num 1
@@ -164,7 +163,33 @@ The fields are:
 Limitations
 ===========
 
-TODO: fix this up
+More details coming soon...
 
-* compiled to max 2048-byte packets, so won't work on LO?
-* full API not implemented: omits set_payload(), interface methods, and what else?
+* Compiled with a 4096-byte buffer for packets, so it probably won't work on
+  loopback or Ethernet with jumbo packets. If this is a problem, either lower
+  MTU on your loopback, disable jumbo packets, or get Cython,
+  change ``DEF BufferSize = 4096`` in ``netfilterqueue.pyx``, and rebuild.
+* Full libnetfilter_queue API is not yet implemented:
+
+    * Omits ``packet.set_payload()`` for altering packet data
+    * Omits methods for getting information about the interface a packet has
+      arrived on or is leaving on
+    * Probably other stuff is omitted too
+    
+* When a packet has been marked, we use nfq_set_verdict_mark rather than
+  nfq_set_verdict2. Apparently nfq_set_verdict_mark
+  `is broken <http://netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#ga1986d6387c5aa2a837c02e87ae3b45ff>`_,
+  although it works for me.
+
+Source
+======
+
+https://github.com/kti/python-netfilterqueue
+
+License
+=======
+
+Copyright (c) 2011, Kerkhoff Technologies, Inc.
+All rights reserved.
+
+Licensed under `BSD <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_
