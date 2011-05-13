@@ -148,7 +148,7 @@ cdef enum:
     NF_STOP
     NF_MAX_VERDICT = NF_STOP
 
-cdef class NFPacket:
+cdef class Packet:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
@@ -183,7 +183,7 @@ cdef class NFPacket:
     cpdef accept(self)
     cpdef drop(self)
     
-cdef class NFQueue:
+cdef class NetfilterQueue:
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue
     cdef u_int16_t af # Address family
