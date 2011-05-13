@@ -1,1 +1,6 @@
-v0.1, 12 May 2011 -- Initial release.
+v0.2, 13 May 2011
+    Rename NetfilterQueue to QueueHandler.
+    Add API section to README.rst.
+
+v0.1, 12 May 2011
+    Initial release.
