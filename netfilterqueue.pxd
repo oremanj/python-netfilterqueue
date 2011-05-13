@@ -183,7 +183,7 @@ cdef class Packet:
     cpdef accept(self)
     cpdef drop(self)
     
-cdef class NetfilterQueue:
+cdef class QueueHandler:
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue
     cdef u_int16_t af # Address family

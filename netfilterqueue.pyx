@@ -17,11 +17,11 @@ cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
     """Create an Packet and pass it to appropriate Python/Cython callback."""
     packet = Packet()
     packet.set_nfq_data(qh, nfa)
-    (<NetfilterQueue>data).handle(packet)
+    (<QueueHandler>data).handle(packet)
     return 1
 
 cdef class Packet:
-    """A packet received from NetfilterQueue."""
+    """A packet received from QueueHandler."""
     def __cinit__(self):
         self._verdict_is_set = False
         self._mark_is_set = False
@@ -104,7 +104,7 @@ cdef class Packet:
         """Drop the packet."""
         self.verdict(NF_DROP)
 
-cdef class NetfilterQueue:
+cdef class QueueHandler:
     """Handle a single numbered queue."""
     def __cinit__(self, *args, **kwargs):
         self.af = kwargs.get("af", PF_INET)
@@ -124,7 +124,7 @@ cdef class NetfilterQueue:
         # processes using this libnetfilter_queue on this protocol family!
         nfq_close(self.h)
 
-    def bind(self, int queue_num, u_int32_t maxlen=DEFAULT_MAX_QUEUELEN, u_int8_t mode=NFQNL_COPY_PACKET, u_int32_t range=MaxPacketSize):
+    def bind(self, int queue_num, u_int32_t max_len=DEFAULT_MAX_QUEUELEN, u_int8_t mode=NFQNL_COPY_PACKET, u_int32_t range=MaxPacketSize):
         """Create and bind to a new queue."""
         self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>global_callback, <void*>self)
         if self.qh == NULL:
@@ -135,7 +135,7 @@ cdef class NetfilterQueue:
         if nfq_set_mode(self.qh, mode, range) < 0:
             raise OSError("Failed to set packet copy mode.")
         
-        nfq_set_queue_maxlen(self.qh, maxlen)
+        nfq_set_queue_maxlen(self.qh, max_len)
     
     def unbind(self):
         """Destroy the queue."""

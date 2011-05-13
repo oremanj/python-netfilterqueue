@@ -10,18 +10,22 @@ Libnetfilter_queue (the netfilter library, not this module) is part of the `Netf
 Example
 =======
 
-The following script prints a short description of each packet before accepting it::
+The following script prints a short description of each packet before accepting it. ::
 
-    from netfilterqueue import NetfilterQueue
+    from netfilterqueue import QueueHandler
     
-    class PacketPrinter(NetfilterQueue):
+    class PacketPrinter(QueueHandler):
         def handle(self, packet):
             print packet
             packet.accept()
     
     p = PacketPrinter()
     p.bind(1)
-    p.run()
+    try:
+        p.run()
+    except KeyboardInterrupt:
+        print
+
 
 To send packets destined for your LAN to the script, type something like::
 
@@ -38,7 +42,7 @@ NetfilterQueue is a C extention module that links against libnetfilter_queue. Be
 
 3. Libnetfilter_queue development files and associated dependencies
 
-On Debian or Ubuntu, these files are install with::
+On Debian or Ubuntu, install these files with::
 
     sudo apt-get install build-essential python-dev libnetfilter-queue-dev
 
@@ -54,9 +58,9 @@ From source
 
 To install from source::
 
-    wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.1.tar.gz
-    tar -xvzf NetfilterQueue-0.1.tar.gz
-    cd NetfilterQueue-0.1
+    wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.2.tar.gz
+    tar -xvzf NetfilterQueue-0.2.tar.gz
+    cd NetfilterQueue-0.2
     python setup.py install
 
 Setup will use Cython if it is installed, regenerating the .c source from the .pyx before compiling the .so.
@@ -64,7 +68,57 @@ Setup will use Cython if it is installed, regenerating the .c source from the .p
 API
 ===
 
-Coming soon...
+``NetfilterQueue.COPY_NONE``
+
+``NetfilterQueue.COPY_META``
+
+``NetfilterQueue.COPY_PACKET``
+    These constants specify how much of the packet should be given to the script- nothing, metadata, or the whole packet.
+
+QueueHandler objects
+--------------------
+
+You should define a class that inherits from QueueHandler and implenents the
+handle() method. Handle() is called for each packet that appears in the queue.
+
+``QueueHandler.bind(queue_num[, max_len[, mode[, range]]])``
+    Create and bind to the queue. ``queue_num`` must match the number in your
+    iptables rule. ``max_len`` sets the largest number of packets that can be
+    in the queue; new packets are dropped if the size of the queue reaches this
+    number. ``mode`` determines how much of the packet data is provided to
+    your script. Use the constants above. ``range`` defines how many bytes of
+    the packet you want to get. For example, if you only want the source and
+    destination IPs of a IPv4 packet, ``range`` could be 20.
+
+``QueueHandler.unbind()``
+    Remove the queue. Packets matched by your iptables rule will be dropped.
+
+``QueueHandler.run()``
+    Begin accepting packets.
+
+``QueueHandler.handle(packet)``
+    Handle a single packet from the queue. You must call either
+    ``packet.accept()`` or ``packet.drop()``.
+
+Packet objects
+--------------
+
+Objects of this type are passed to your handle() method.
+
+``Packet.get_payload()``
+    Return the packet's payload as a string.
+
+``Packet.get_payload_len()``
+    Return the size of the payload.
+
+``Packet.set_mark(mark)``
+    Give the packet a kernel mark. ``mark`` is a 32-bit number.
+
+``Packet.accept()``
+    Accept the packet.
+
+``Packet.drop()``
+    Drop the packet.
 
 Usage
 =====
@@ -106,7 +160,6 @@ The fields are:
 8. Total number of packets sent to queue
 
 9. Libnetfilter_queue internal use
-
 
 Limitations
 ===========
