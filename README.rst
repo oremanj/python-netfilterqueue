@@ -189,7 +189,6 @@ https://github.com/kti/python-netfilterqueue
 License
 =======
 
-Copyright (c) 2011, Kerkhoff Technologies, Inc.
-All rights reserved.
+Copyright (c) 2011, Kerkhoff Technologies, Inc. All rights reserved.
 
-Licensed under `BSD <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_
+`BSD <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_ licensed.
