@@ -12,17 +12,16 @@ Example
 
 The following script prints a short description of each packet before accepting it. ::
 
-    from netfilterqueue import QueueHandler
+    from netfilterqueue import NetfilterQueue
     
-    class PacketPrinter(QueueHandler):
-        def handle(self, packet):
-            print packet
-            packet.accept()
+    def print_and_accept(pkt):
+        print pkt
+        pkt.accept()
     
-    p = PacketPrinter()
-    p.bind(1)
+    nfqueue = NetfilterQueue()
+    nfqueue.bind(1, print_and_accept)
     try:
-        p.run()
+        nfqueue.run()
     except KeyboardInterrupt:
         print
 
@@ -43,7 +42,7 @@ NetfilterQueue is a C extention module that links against libnetfilter_queue. Be
 
 On Debian or Ubuntu, install these files with::
 
-    sudo apt-get install build-essential python-dev libnetfilter-queue-dev
+    apt-get install build-essential python-dev libnetfilter-queue-dev
 
 From PyPI
 ---------
@@ -57,12 +56,12 @@ From source
 
 To install from source::
 
-    wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.2.tar.gz
-    tar -xvzf NetfilterQueue-0.2.tar.gz
-    cd NetfilterQueue-0.2
+    wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.3.tar.gz
+    tar -xvzf NetfilterQueue-0.3.tar.gz
+    cd NetfilterQueue-0.3
     python setup.py install
 
-Setup will use Cython if it is installed, regenerating the .c source from the .pyx before compiling the .so.
+If Cython is installed, Distutils will use it to regenerate the .c source from the .pyx. It will then compile the .c into a .so.
 
 API
 ===
@@ -74,35 +73,32 @@ API
 ``NetfilterQueue.COPY_PACKET``
     These constants specify how much of the packet should be given to the script- nothing, metadata, or the whole packet.
 
-QueueHandler objects
---------------------
+NetfilterQueue objects
+----------------------
 
-You should define a class that inherits from QueueHandler and implenents the
-handle() method. Handle() is called for each packet that appears in the queue.
+A NetfilterQueue object represents a single queue. Configure your queue with
+a call to ``bind``, then start receiving packets with a call to ``run``.
 
-``QueueHandler.bind(queue_num[, max_len[, mode[, range]]])``
+``QueueHandler.bind(queue_num, callback[, max_len[, mode[, range]]])``
     Create and bind to the queue. ``queue_num`` must match the number in your
-    iptables rule. ``max_len`` sets the largest number of packets that can be
-    in the queue; new packets are dropped if the size of the queue reaches this
-    number. ``mode`` determines how much of the packet data is provided to
-    your script. Use the constants above. ``range`` defines how many bytes of
-    the packet you want to get. For example, if you only want the source and
-    destination IPs of a IPv4 packet, ``range`` could be 20.
+    iptables rule. ``callback`` is a function or method that takes one
+    argument, a Packet object (see below). ``max_len`` sets the largest number
+    of packets that can be in the queue; new packets are dropped if the size of
+    the queue reaches this number. ``mode`` determines how much of the packet
+    data is provided to your script. Use the constants above. ``range`` defines
+    how many bytes of the packet you want to get. For example, if you only want
+    the source and destination IPs of a IPv4 packet, ``range`` could be 20.
 
 ``QueueHandler.unbind()``
     Remove the queue. Packets matched by your iptables rule will be dropped.
 
 ``QueueHandler.run()``
-    Begin accepting packets.
-
-``QueueHandler.handle(packet)``
-    Handle a single packet from the queue. You must call either
-    ``packet.accept()`` or ``packet.drop()``.
+    Send packets to your callback. This method blocks.
 
 Packet objects
 --------------
 
-Objects of this type are passed to your handle() method.
+Objects of this type are passed to your callback.
 
 ``Packet.get_payload()``
     Return the packet's payload as a string.
@@ -118,11 +114,22 @@ Objects of this type are passed to your handle() method.
 
 ``Packet.drop()``
     Drop the packet.
+    
+Callback objects
+----------------
+
+Your callback can be function or a method and must accept one argument, a
+Packet object. You must call either Packet.accept() or Packet.drop() before
+returning.
+
+``callback(packet)`` or ``callback(self, packet)``
+    Handle a single packet from the queue. You must call either
+    ``packet.accept()`` or ``packet.drop()``.
 
 Usage
 =====
 
-To route packets to the queue::
+To send packets to the queue::
 
     iptables -I <table or chain> <match specification> -j NFQUEUE --queue-num <queue number>
     
@@ -133,7 +140,7 @@ For example::
 The only special part of the rule is the target. Rules can have any match and 
 can be added to any table or chain.
 
-Valid queue numbers are integers from 0 to 65,536 inclusive.
+Valid queue numbers are integers from 0 to 65,535 inclusive.
 
 To view libnetfilter_queue stats, refer to /proc/net/netfilter/nfnetlink_queue::
 
@@ -158,7 +165,7 @@ The fields are:
 
 8. Total number of packets sent to queue
 
-9. Libnetfilter_queue internal use
+9. Something for libnetfilter_queue's internal use
 
 Limitations
 ===========
@@ -190,6 +197,5 @@ License
 =======
 
 Copyright (c) 2011, Kerkhoff Technologies, Inc.
-All rights reserved.
 
-Licensed under `BSD <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_
+`MIT licensed <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_

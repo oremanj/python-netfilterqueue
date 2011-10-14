@@ -1,4 +1,12 @@
-## cython: profile=True
+"""
+Bind to a Linux netfilter queue. Send packets to a user-specified callback 
+function.
+
+Copyright: (c) 2011, Kerkhoff Technologies Inc.
+License: MIT; see LICENSE.txt
+"""
+VERSION = (0, 3, 0)
+
 # Constants for module users
 COPY_NONE = 1
 COPY_META = 2
@@ -14,14 +22,17 @@ DEF MaxCopySize = BufferSize - MetadataSize
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, 
                          nfq_data *nfa, void *data) with gil:
-    """Create an Packet and pass it to appropriate Python/Cython callback."""
+    """Create a Packet and pass it to appropriate callback."""
+    cdef NetfilterQueue nfqueue = <NetfilterQueue>data
+    cdef object user_callback = <object>nfqueue.user_callback
+
     packet = Packet()
     packet.set_nfq_data(qh, nfa)
-    (<QueueHandler>data).handle(packet)
+    user_callback(packet)
     return 1
 
 cdef class Packet:
-    """A packet received from QueueHandler."""
+    """A packet received from NetfilterQueue."""
     def __cinit__(self):
         self._verdict_is_set = False
         self._mark_is_set = False
@@ -57,7 +68,8 @@ cdef class Packet:
             raise RuntimeWarning("Verdict already given for this packet.")
         
         if self._mark_is_set:
-            nfq_set_verdict_mark( # TODO: make this use nfq_set_verdict2 if available on system
+            nfq_set_verdict_mark( # TODO: make this use nfq_set_verdict2 if
+                                    # available on system
                 self._qh,
                 self.id,
                 verdict,
@@ -78,7 +90,8 @@ cdef class Packet:
     
     def get_payload(self):
         """Return payload as Python string."""
-        cdef object py_string = PyString_FromStringAndSize(self.payload, self.payload_len)
+        cdef object py_string = PyString_FromStringAndSize(self.payload,
+                                                           self.payload_len)
         return py_string
     
     cpdef Py_ssize_t get_payload_len(self):
@@ -104,7 +117,7 @@ cdef class Packet:
         """Drop the packet."""
         self.verdict(NF_DROP)
 
-cdef class QueueHandler:
+cdef class NetfilterQueue:
     """Handle a single numbered queue."""
     def __cinit__(self, *args, **kwargs):
         self.af = kwargs.get("af", PF_INET)
@@ -124,9 +137,14 @@ cdef class QueueHandler:
         # processes using this libnetfilter_queue on this protocol family!
         nfq_close(self.h)
 
-    def bind(self, int queue_num, u_int32_t max_len=DEFAULT_MAX_QUEUELEN, u_int8_t mode=NFQNL_COPY_PACKET, u_int32_t range=MaxPacketSize):
+    def bind(self, int queue_num, object user_callback,
+                u_int32_t max_len=DEFAULT_MAX_QUEUELEN, 
+                u_int8_t mode=NFQNL_COPY_PACKET,
+                u_int32_t range=MaxPacketSize):
         """Create and bind to a new queue."""
-        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>global_callback, <void*>self)
+        self.user_callback = user_callback
+        self.qh = nfq_create_queue(self.h, queue_num,
+                                   <nfq_callback*>global_callback, <void*>self)
         if self.qh == NULL:
             raise OSError("Failed to create queue %s." % queue_num)
         
@@ -154,10 +172,6 @@ cdef class QueueHandler:
             nfq_handle_packet(self.h, buf, rv)
             with nogil:
                 rv = recv(fd, buf, sizeof(buf), 0)
-
-    def handle(self, Packet packet):
-        """Handle a single packet. User-defined classes should override this."""
-        packet.accept()
 
 PROTOCOLS = {
     0: "HOPOPT",
