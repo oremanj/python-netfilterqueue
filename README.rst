@@ -5,12 +5,14 @@ NetfilterQueue
 NetfilterQueue provides access to packets matched by an iptables rule in
 Linux. Packets so matched can be accepted, dropped, altered, or given a mark.
 
-Libnetfilter_queue (the netfilter library, not this module) is part of the `Netfilter project <http://netfilter.org/projects/libnetfilter_queue/>`_.
+Libnetfilter_queue (the netfilter library, not this module) is part of the
+`Netfilter project <http://netfilter.org/projects/libnetfilter_queue/>`_.
 
 Example
 =======
 
-The following script prints a short description of each packet before accepting it. ::
+The following script prints a short description of each packet before accepting
+it. ::
 
     from netfilterqueue import NetfilterQueue
     
@@ -32,7 +34,8 @@ To send packets destined for your LAN to the script, type something like::
 Installation
 ============
 
-NetfilterQueue is a C extention module that links against libnetfilter_queue. Before installing, ensure you have:
+NetfilterQueue is a C extention module that links against libnetfilter_queue. 
+Before installing, ensure you have:
 
 1. A C compiler
 
@@ -71,7 +74,8 @@ API
 ``NetfilterQueue.COPY_META``
 
 ``NetfilterQueue.COPY_PACKET``
-    These constants specify how much of the packet should be given to the script- nothing, metadata, or the whole packet.
+    These constants specify how much of the packet should be given to the
+    script- nothing, metadata, or the whole packet.
 
 NetfilterQueue objects
 ----------------------
@@ -184,8 +188,8 @@ More details coming soon...
     * Probably other stuff is omitted too
     
 * When a packet has been marked, we use nfq_set_verdict_mark rather than
-  nfq_set_verdict2. Apparently nfq_set_verdict_mark
-  `is broken <http://netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#ga1986d6387c5aa2a837c02e87ae3b45ff>`_,
+  nfq_set_verdict2. Apparently nfq_set_verdict_mark is 
+  `broken <http://netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#ga1986d6387c5aa2a837c02e87ae3b45ff>`_,
   although it works for me.
 
 Source
@@ -199,3 +203,4 @@ License
 Copyright (c) 2011, Kerkhoff Technologies, Inc.
 
 `MIT licensed <https://github.com/kti/python-netfilterqueue/blob/master/LICENSE.txt>`_
+
