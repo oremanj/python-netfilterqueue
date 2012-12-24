@@ -5,6 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
+from libc.string cimport strlen
 VERSION = (0, 3, 0)
 
 # Constants for module users
@@ -36,7 +37,7 @@ cdef class Packet:
     def __cinit__(self):
         self._verdict_is_set = False
         self._mark_is_set = False
-        self._given_payload = NULL
+        self._given_payload = None
     
     def __str__(self):
         cdef iphdr *hdr = <iphdr*>self.payload
@@ -66,7 +67,12 @@ cdef class Packet:
         """Call appropriate set_verdict... function on packet."""
         if self._verdict_is_set:
             raise RuntimeWarning("Verdict already given for this packet.")
-        
+
+        cdef u_int32_t modified_payload_len = 0
+        cdef unsigned char *modified_payload = NULL        
+        if self._given_payload:
+            modified_payload_len = len(self._given_payload)
+            modified_payload = self._given_payload
         if self._mark_is_set:
             nfq_set_verdict_mark( # TODO: make this use nfq_set_verdict2 if
                                     # available on system
@@ -74,17 +80,15 @@ cdef class Packet:
                 self.id,
                 verdict,
                 htonl(self._given_mark),
-                0, # TODO: adapt to use self._given_payload
-                NULL # TODO: adapt to use self._given_payload
-            )
+                modified_payload_len,
+                modified_payload)
         else:
             nfq_set_verdict(
                 self._qh,
                 self.id,
                 verdict,
-                0, # TODO: adapt to use self._given_payload
-                NULL # TODO: adapt to use self._given_payload
-            )
+                modified_payload_len,
+                modified_payload)
 
         self._verdict_is_set = True
     
@@ -100,10 +104,9 @@ cdef class Packet:
     cpdef double get_timestamp(self):
         return self.timestamp.tv_sec + (self.timestamp.tv_usec/1000000.0)
     
-    # TODO: implement this
-    #cpdef set_payload(self, unsigned char *payload):
-    #    """Set the new payload of this packet."""
-    #    self._given_payload = payload
+    cpdef set_payload(self, bytes payload):
+        """Set the new payload of this packet."""
+        self._given_payload = payload
         
     cpdef set_mark(self, u_int32_t mark):
         self._given_mark = mark

@@ -156,7 +156,7 @@ cdef class Packet:
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
     cdef u_int32_t _given_mark # Mark given to packet
-    cdef unsigned char *_given_payload # New payload of packet, or null
+    cdef bytes _given_payload # New payload of packet, or null
     
     # From NFQ packet header:
     cdef readonly u_int32_t id
@@ -179,6 +179,7 @@ cdef class Packet:
     cdef void verdict(self, u_int8_t verdict)
     cpdef Py_ssize_t get_payload_len(self)
     cpdef double get_timestamp(self)
+    cpdef set_payload(self, bytes payload)
     cpdef set_mark(self, u_int32_t mark)
     cpdef accept(self)
     cpdef drop(self)
