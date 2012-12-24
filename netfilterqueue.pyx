@@ -5,8 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-from libc.string cimport strlen
-VERSION = (0, 3, 0)
+VERSION = (0, 4, 0)
 
 # Constants for module users
 COPY_NONE = 1

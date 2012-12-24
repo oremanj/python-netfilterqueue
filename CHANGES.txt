@@ -1,3 +1,6 @@
+v0.4, 24 Dec 2012
+    Add set_payload.
+
 v0.2, 13 May 2011
     Rename NetfilterQueue to QueueHandler.
     Add API section to README.rst.
