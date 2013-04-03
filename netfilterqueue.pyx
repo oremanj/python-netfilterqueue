@@ -5,7 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 4, 0)
+VERSION = (0, 5, 0)
 
 # Constants for module users
 COPY_NONE = 1
@@ -73,8 +73,7 @@ cdef class Packet:
             modified_payload_len = len(self._given_payload)
             modified_payload = self._given_payload
         if self._mark_is_set:
-            nfq_set_verdict_mark( # TODO: make this use nfq_set_verdict2 if
-                                    # available on system
+            nfq_set_verdict_mark(
                 self._qh,
                 self.id,
                 verdict,
@@ -118,6 +117,10 @@ cdef class Packet:
     cpdef drop(self):
         """Drop the packet."""
         self.verdict(NF_DROP)
+
+    cpdef repeat(self):
+        """Repeat the packet."""
+        self.verdict(NF_REPEAT)
 
 cdef class NetfilterQueue:
     """Handle a single numbered queue."""

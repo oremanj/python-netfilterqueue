@@ -183,6 +183,7 @@ cdef class Packet:
     cpdef set_mark(self, u_int32_t mark)
     cpdef accept(self)
     cpdef drop(self)
+    cpdef repeat(self)
     
 cdef class NetfilterQueue:
     cdef object user_callback # User callback

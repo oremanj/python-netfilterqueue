@@ -1,3 +1,6 @@
+v0.5, 3 Apr 2013
+    Add repeat.
+
 v0.4, 24 Dec 2012
     Add set_payload.
 
