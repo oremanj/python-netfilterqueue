@@ -129,6 +129,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_payload(nfq_data *nfad, char **data)
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
+    int nfq_get_nfmark (nfq_data *nfad)
     
 # Dummy defines from linux/socket.h:
 cdef enum: #  Protocol families, same as address families.
@@ -162,6 +163,7 @@ cdef class Packet:
     cdef readonly u_int32_t id
     cdef readonly u_int16_t hw_protocol
     cdef readonly u_int8_t hook
+    cdef readonly u_int32_t mark
     
     # Packet details:
     cdef Py_ssize_t payload_len
@@ -181,6 +183,7 @@ cdef class Packet:
     cpdef double get_timestamp(self)
     cpdef set_payload(self, bytes payload)
     cpdef set_mark(self, u_int32_t mark)
+    cpdef get_mark(self)
     cpdef accept(self)
     cpdef drop(self)
     cpdef repeat(self)

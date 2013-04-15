@@ -1,3 +1,6 @@
+v0.6, 15 Apr 2013
+    Add get_mark.
+
 v0.5, 3 Apr 2013
     Add repeat.
 

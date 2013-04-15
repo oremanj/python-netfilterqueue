@@ -5,7 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 5, 0)
+VERSION = (0, 6, 0)
 
 # Constants for module users
 COPY_NONE = 1
@@ -61,6 +61,7 @@ cdef class Packet:
             raise OSError("Failed to get payload of packet.")
         
         nfq_get_timestamp(self._nfa, &self.timestamp)
+        self.mark = nfq_get_nfmark(nfa)
 
     cdef void verdict(self, u_int8_t verdict):
         """Call appropriate set_verdict... function on packet."""
@@ -109,6 +110,11 @@ cdef class Packet:
     cpdef set_mark(self, u_int32_t mark):
         self._given_mark = mark
         self._mark_is_set = True
+
+    cpdef get_mark(self):
+        if self._mark_is_set:
+            return self._given_mark
+        return self.mark
     
     cpdef accept(self):
         """Accept the packet."""
