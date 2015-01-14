@@ -90,10 +90,8 @@ cdef class Packet:
     
     def get_payload(self):
         """Return payload as Python string."""
-        cdef object py_string = PyString_FromStringAndSize(self.payload,
-                                                           self.payload_len)
-        return py_string
-    
+        return self.payload[:self.payload_len]
+
     cpdef Py_ssize_t get_payload_len(self):
         return self.payload_len
     
