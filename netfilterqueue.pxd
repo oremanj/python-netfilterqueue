@@ -47,6 +47,7 @@ cdef enum:
     IPPROTO_MAX
 
 cdef extern from "Python.h":
+    object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 cdef extern from "sys/time.h":

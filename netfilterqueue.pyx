@@ -20,6 +20,8 @@ DEF BufferSize = 4096
 DEF MetadataSize = 80
 DEF MaxCopySize = BufferSize - MetadataSize
 
+cimport cpython.version
+
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, 
                          nfq_data *nfa, void *data) with gil:
     """Create a Packet and pass it to appropriate callback."""
@@ -93,8 +95,13 @@ cdef class Packet:
     
     def get_payload(self):
         """Return payload as Python string."""
-        cdef object py_string = PyString_FromStringAndSize(self.payload,
-                                                           self.payload_len)
+        cdef object py_string
+        if cpython.version.PY_MAJOR_VERSION >= 3:
+            py_string = PyBytes_FromStringAndSize(
+                self.payload, self.payload_len)
+        else:
+            py_string = PyString_FromStringAndSize(
+                self.payload, self.payload_len)
         return py_string
     
     cpdef Py_ssize_t get_payload_len(self):
