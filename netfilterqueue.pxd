@@ -79,7 +79,7 @@ cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
         u_int32_t packet_id
         u_int16_t hw_protocol
         u_int8_t hook
-        
+
 cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     struct nfq_handle:
         pass
@@ -89,10 +89,10 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
         pass
     struct nfqnl_msg_packet_hw:
         u_int8_t hw_addr[8]
-    
+
     nfq_handle *nfq_open()
     int nfq_close(nfq_handle *h)
-    
+
     int nfq_bind_pf(nfq_handle *h, u_int16_t pf)
     int nfq_unbind_pf(nfq_handle *h, u_int16_t pf)
     ctypedef int *nfq_callback(nfq_q_handle *gh, nfgenmsg *nfmsg,
@@ -102,21 +102,21 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
                                     nfq_callback *cb,
                                     void *data)
     int nfq_destroy_queue(nfq_q_handle *qh)
-    
+
     int nfq_handle_packet(nfq_handle *h, char *buf, int len)
-    
+
     int nfq_set_mode(nfq_q_handle *qh,
                        u_int8_t mode, unsigned int len)
-    
+
     q_set_queue_maxlen(nfq_q_handle *qh,
                      u_int32_t queuelen)
-    
+
     int nfq_set_verdict(nfq_q_handle *qh,
                           u_int32_t id,
                           u_int32_t verdict,
                           u_int32_t data_len,
                           unsigned char *buf) nogil
-    
+
     int nfq_set_verdict_mark(nfq_q_handle *qh,
                             u_int32_t id,
                             u_int32_t verdict,
@@ -131,7 +131,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
-    
+
 # Dummy defines from linux/socket.h:
 cdef enum: #  Protocol families, same as address families.
     PF_INET = 2
@@ -139,7 +139,7 @@ cdef enum: #  Protocol families, same as address families.
 
 cdef extern from "sys/socket.h":
     ssize_t recv(int __fd, void *__buf, size_t __n, int __flags) nogil
-    
+
 # Dummy defines from linux/netfilter.h
 cdef enum:
     NF_DROP
@@ -154,18 +154,18 @@ cdef class Packet:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
-    cdef bint _verdict_is_set # True if verdict has been issued, 
+    cdef bint _verdict_is_set # True if verdict has been issued,
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
     cdef u_int32_t _given_mark # Mark given to packet
     cdef bytes _given_payload # New payload of packet, or null
-    
+
     # From NFQ packet header:
     cdef readonly u_int32_t id
     cdef readonly u_int16_t hw_protocol
     cdef readonly u_int8_t hook
     cdef readonly u_int32_t mark
-    
+
     # Packet details:
     cdef Py_ssize_t payload_len
     cdef readonly char *payload
@@ -177,7 +177,7 @@ cdef class Packet:
     #cdef readonly u_int32_t physindev
     #cdef readonly u_int32_t outdev
     #cdef readonly u_int32_t physoutdev
-    
+
     cdef set_nfq_data(self, nfq_q_handle *qh, nfq_data *nfa)
     cdef void verdict(self, u_int8_t verdict)
     cpdef Py_ssize_t get_payload_len(self)
@@ -188,11 +188,11 @@ cdef class Packet:
     cpdef accept(self)
     cpdef drop(self)
     cpdef repeat(self)
-    
+
 cdef class NetfilterQueue:
     cdef object user_callback # User callback
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue
     cdef u_int16_t af # Address family
     cdef packet_copy_size # Amount of packet metadata + data copied to buffer
-    
+
