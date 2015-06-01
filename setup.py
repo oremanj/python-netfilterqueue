@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-VERSION = "0.3" # Remember to change README.rst when version changes.
+VERSION = "0.6" # Remember to change README.rst when version changes.
 
 try:
     # Use Cython
