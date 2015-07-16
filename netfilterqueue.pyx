@@ -170,6 +170,7 @@ cdef class NetfilterQueue:
         """Destroy the queue."""
         if self.qh != NULL:
             nfq_destroy_queue(self.qh)
+        self.qh = NULL
         # See warning about nfq_unbind_pf in __dealloc__ above.
         
     def run(self):
