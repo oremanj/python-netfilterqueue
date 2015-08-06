@@ -12,13 +12,17 @@ COPY_NONE = 1
 COPY_META = 2
 COPY_PACKET = 3
 
-DEFAULT_MAX_QUEUELEN = 1024
-
 # Packet copying defaults
+DEF DEFAULT_MAX_QUEUELEN = 1024
 DEF MaxPacketSize = 0xFFFF
 DEF BufferSize = 4096
 DEF MetadataSize = 80
 DEF MaxCopySize = BufferSize - MetadataSize
+# Experimentally determined overhead
+DEF SockOverhead = 760+20
+DEF SockCopySize = MaxCopySize + SockOverhead
+# Socket queue should hold max number of packets of copysize bytes
+DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize / 2
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, 
                          nfq_data *nfa, void *data) with gil:
@@ -151,8 +155,10 @@ cdef class NetfilterQueue:
     def bind(self, int queue_num, object user_callback,
                 u_int32_t max_len=DEFAULT_MAX_QUEUELEN, 
                 u_int8_t mode=NFQNL_COPY_PACKET,
-                u_int32_t range=MaxPacketSize):
+                u_int32_t range=MaxPacketSize,
+                u_int32_t sock_len=SockRcvSize):
         """Create and bind to a new queue."""
+        cdef unsigned int newsiz
         self.user_callback = user_callback
         self.qh = nfq_create_queue(self.h, queue_num,
                                    <nfq_callback*>global_callback, <void*>self)
@@ -165,6 +171,10 @@ cdef class NetfilterQueue:
             raise OSError("Failed to set packet copy mode.")
         
         nfq_set_queue_maxlen(self.qh, max_len)
+
+        newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h),sock_len)
+        if newsiz != sock_len*2:
+            raise RuntimeWarning("Socket rcvbuf limit is now %d, requested %d." % (newsiz,sock_len))
     
     def unbind(self):
         """Destroy the queue."""
@@ -177,12 +187,14 @@ cdef class NetfilterQueue:
         cdef int fd = nfq_fd(self.h)
         cdef char buf[BufferSize]
         cdef int rv
-        with nogil:
-            rv = recv(fd, buf, sizeof(buf), 0)
-        while rv >= 0:
-            nfq_handle_packet(self.h, buf, rv)
+        while True:
             with nogil:
                 rv = recv(fd, buf, sizeof(buf), 0)
+            if (rv >= 0):
+                nfq_handle_packet(self.h, buf, rv)
+            else:
+                if errno != ENOBUFS:
+                    break
 
 PROTOCOLS = {
     0: "HOPOPT",
