@@ -171,18 +171,24 @@ cdef class NetfilterQueue:
         if self.qh != NULL:
             nfq_destroy_queue(self.qh)
         # See warning about nfq_unbind_pf in __dealloc__ above.
-        
-    def run(self):
+
+    def get_fd(self):
+        """Get the file descriptor of the queue handler."""
+        return nfq_fd(self.h)
+
+    def run(self, block=True):
         """Begin accepting packets."""
         cdef int fd = nfq_fd(self.h)
         cdef char buf[BufferSize]
         cdef int rv
+        cdef int recv_flags
+        recv_flags = 0 if block else MSG_DONTWAIT
         with nogil:
-            rv = recv(fd, buf, sizeof(buf), 0)
+            rv = recv(fd, buf, sizeof(buf), recv_flags)
         while rv >= 0:
             nfq_handle_packet(self.h, buf, rv)
             with nogil:
-                rv = recv(fd, buf, sizeof(buf), 0)
+                rv = recv(fd, buf, sizeof(buf), recv_flags)
 
 PROTOCOLS = {
     0: "HOPOPT",
