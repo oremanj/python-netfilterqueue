@@ -1,3 +1,11 @@
+v0.7, 28 June 2016
+    Add Python 3 compatibility.
+    Add sock_len argument to bind()
+    Add block argument to run()
+    Add run_socket()
+    Fix COPY* constants
+    Don't crash on double unlink()
+
 v0.6, 15 Apr 2013
     Add get_mark.
 
