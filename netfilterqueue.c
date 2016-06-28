@@ -5288,29 +5288,29 @@ PyMODINIT_FUNC PyInit_netfilterqueue(void)
   /* "netfilterqueue.pyx":11
  * 
  * # Constants for module users
- * COPY_NONE = 1             # <<<<<<<<<<<<<<
- * COPY_META = 2
- * COPY_PACKET = 3
+ * COPY_NONE = 0             # <<<<<<<<<<<<<<
+ * COPY_META = 1
+ * COPY_PACKET = 2
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_NONE, __pyx_int_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_NONE, __pyx_int_0) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
 
   /* "netfilterqueue.pyx":12
  * # Constants for module users
- * COPY_NONE = 1
- * COPY_META = 2             # <<<<<<<<<<<<<<
- * COPY_PACKET = 3
+ * COPY_NONE = 0
+ * COPY_META = 1             # <<<<<<<<<<<<<<
+ * COPY_PACKET = 2
  * 
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_META, __pyx_int_2) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_META, __pyx_int_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
 
   /* "netfilterqueue.pyx":13
- * COPY_NONE = 1
- * COPY_META = 2
- * COPY_PACKET = 3             # <<<<<<<<<<<<<<
+ * COPY_NONE = 0
+ * COPY_META = 1
+ * COPY_PACKET = 2             # <<<<<<<<<<<<<<
  * 
  * # Packet copying defaults
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_PACKET, __pyx_int_3) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_COPY_PACKET, __pyx_int_2) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
 
   /* "netfilterqueue.pyx":164
  *     def bind(self, int queue_num, object user_callback,

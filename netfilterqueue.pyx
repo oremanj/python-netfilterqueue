@@ -8,9 +8,9 @@ License: MIT; see LICENSE.txt
 VERSION = (0, 6, 0)
 
 # Constants for module users
-COPY_NONE = 1
-COPY_META = 2
-COPY_PACKET = 3
+COPY_NONE = 0
+COPY_META = 1
+COPY_PACKET = 2
 
 # Packet copying defaults
 DEF DEFAULT_MAX_QUEUELEN = 1024
