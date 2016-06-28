@@ -81,7 +81,7 @@ From source
 
 To install from source::
 
-    wget http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-0.7.tar.gz
+    wget https://pypi.python.org/packages/7b/c3/204d47c1c47a7fd6ac1e4e341bdc6021f8142e6c7b6e488436592a6d2488/NetfilterQueue-0.7.tar.gz
     tar -xvzf NetfilterQueue-0.7.tar.gz
     cd NetfilterQueue-0.7
     python setup.py install
