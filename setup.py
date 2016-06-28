@@ -42,5 +42,6 @@ setup(
         "Intended Audience :: Telecommunications Industry",
         "Programming Language :: Cython",
         "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 3",
     ]
 )
