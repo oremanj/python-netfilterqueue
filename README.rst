@@ -104,7 +104,8 @@ a call to ``bind``, then start receiving packets with a call to ``run``.
 
 ``QueueHandler.run([block])``
     Send packets to your callback. By default, this method blocks. Set
-    block=False to let your thread continue. You can get the
+    block=False to let your thread continue. You can get the file descriptor
+    of the socket with the ``get_fd`` method.
 
 Packet objects
 --------------
