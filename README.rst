@@ -29,6 +29,26 @@ it. ::
     
     nfqueue.unbind()
 
+You can also make your own socket so that it can be used with gevent, for example. ::
+
+    from netfilterqueue import NetfilterQueue
+    import socket
+
+    def print_and_accept(pkt):
+        print(pkt)
+        pkt.accept()
+
+    nfqueue = NetfilterQueue()
+    nfqueue.bind(1, print_and_accept)
+    s = socket.fromfd(nfqueue.get_fd(), socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        nfqueue.run_socket(s)
+    except KeyboardInterrupt:
+        print('')
+
+    s.close()
+    nfqueue.unbind()
+
 To send packets destined for your LAN to the script, type something like::
 
     iptables -I INPUT -d 192.168.0.0/24 -j NFQUEUE --queue-num 1
@@ -106,6 +126,12 @@ a call to ``bind``, then start receiving packets with a call to ``run``.
     Send packets to your callback. By default, this method blocks. Set
     block=False to let your thread continue. You can get the file descriptor
     of the socket with the ``get_fd`` method.
+
+``QueueHandler.run_socket(socket)``
+    Send packets to your callback, but use the supplied socket instead of
+    recv, so that, for example, gevent can monkeypatch it. You can make a
+    socket with ``socket.fromfd(nfqueue.get_fd(), socket.AF_UNIX, socket.SOCK_STREAM)``
+    and optionally make it non-blocking with ``socket.setblocking(False)``.
 
 Packet objects
 --------------
@@ -190,8 +216,6 @@ The fields are:
 
 Limitations
 ===========
-
-More details coming soon...
 
 * Compiled with a 4096-byte buffer for packets, so it probably won't work on
   loopback or Ethernet with jumbo packets. If this is a problem, either lower

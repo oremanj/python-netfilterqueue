@@ -8,6 +8,8 @@ cdef extern from "<errno.h>":
 
 # dummy defines from asm-generic/errno.h:
 cdef enum:
+    EAGAIN = 11           # Try again
+    EWOULDBLOCK = EAGAIN
     ENOBUFS = 105         # No buffer space available
 
 cdef extern from "netinet/ip.h":

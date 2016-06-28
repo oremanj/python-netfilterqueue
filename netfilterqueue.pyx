@@ -24,6 +24,7 @@ DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize / 2
 
+import socket
 cimport cpython.version
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
@@ -31,7 +32,6 @@ cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
     """Create a Packet and pass it to appropriate callback."""
     cdef NetfilterQueue nfqueue = <NetfilterQueue>data
     cdef object user_callback = <object>nfqueue.user_callback
-
     packet = Packet()
     packet.set_nfq_data(qh, nfa)
     user_callback(packet)
@@ -195,8 +195,8 @@ cdef class NetfilterQueue:
         return nfq_fd(self.h)
 
     def run(self, block=True):
-        """Begin accepting packets."""
-        cdef int fd = nfq_fd(self.h)
+        """Accept packets using recv."""
+        cdef int fd = self.get_fd()
         cdef char buf[BufferSize]
         cdef int rv
         cdef int recv_flags
@@ -210,6 +210,26 @@ cdef class NetfilterQueue:
             else:
                 if errno != ENOBUFS:
                     break
+
+    def run_socket(self, s):
+        """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
+        try:
+            while True:
+                buf = s.recv(BufferSize)
+                rv = len(buf)
+                if rv >= 0:
+                    nfq_handle_packet(self.h, buf, rv)
+                else:
+                    break
+        except socket.error as e:
+            err = e.args[0]
+            if err == EAGAIN or err == EWOULDBLOCK:
+                # This should only happen with a non-blocking socket, and the
+                # app should call run_socket again when more data is available.
+                pass
+            else:
+                # This is bad. Let the caller handle it.
+                raise e
 
 PROTOCOLS = {
     0: "HOPOPT",
