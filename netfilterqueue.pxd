@@ -152,6 +152,7 @@ cdef enum: #  Protocol families, same as address families.
 
 cdef extern from "sys/socket.h":
     ssize_t recv(int __fd, void *__buf, size_t __n, int __flags) nogil
+    int MSG_DONTWAIT
 
 # Dummy defines from linux/netfilter.h
 cdef enum:
