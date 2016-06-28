@@ -17,7 +17,7 @@ it. ::
     from netfilterqueue import NetfilterQueue
     
     def print_and_accept(pkt):
-        print pkt
+        print(pkt)
         pkt.accept()
     
     nfqueue = NetfilterQueue()
@@ -107,18 +107,27 @@ Objects of this type are passed to your callback.
 ``Packet.get_payload()``
     Return the packet's payload as a string.
 
+``Packet.set_payload(payload)``
+    Set the packet payload. ``payload`` is bytes.
+
 ``Packet.get_payload_len()``
     Return the size of the payload.
 
 ``Packet.set_mark(mark)``
     Give the packet a kernel mark. ``mark`` is a 32-bit number.
 
+``Packet.get_mark()``
+    Get the mark already on the packet.
+
 ``Packet.accept()``
     Accept the packet.
 
 ``Packet.drop()``
     Drop the packet.
-    
+   
+``Packet.repeat()``
+    Iterate the same cycle once more.
+ 
 Callback objects
 ----------------
 
@@ -182,7 +191,6 @@ More details coming soon...
   change ``DEF BufferSize = 4096`` in ``netfilterqueue.pyx``, and rebuild.
 * Full libnetfilter_queue API is not yet implemented:
 
-    * Omits ``packet.set_payload()`` for altering packet data
     * Omits methods for getting information about the interface a packet has
       arrived on or is leaving on
     * Probably other stuff is omitted too
