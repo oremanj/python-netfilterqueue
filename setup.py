@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-VERSION = "0.7" # Remember to change README.rst when version changes.
+VERSION = "0.7" # Remember to change README.rst and netfilterqueue.pyx when version changes.
 
 try:
     # Use Cython
