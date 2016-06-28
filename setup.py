@@ -27,7 +27,7 @@ setup(
     version=VERSION,
     license="BSD",
     author="Matthew Fox",
-    author_email="matt.fox@multapplied.net",
+    author_email="matt@tansen.ca",
     url="https://github.com/kti/python-netfilterqueue",
     description="Python bindings for libnetfilter_queue",
     long_description=open("README.rst").read(),
