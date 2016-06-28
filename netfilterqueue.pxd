@@ -3,6 +3,13 @@ cdef extern from "sys/types.h":
     ctypedef unsigned short int u_int16_t
     ctypedef unsigned int u_int32_t
 
+cdef extern from "<errno.h>":
+    int errno
+
+# dummy defines from asm-generic/errno.h:
+cdef enum:
+    ENOBUFS = 105         # No buffer space available
+
 cdef extern from "netinet/ip.h":
     struct iphdr:
         u_int8_t tos
@@ -70,6 +77,11 @@ cdef extern from "libnfnetlink/linux_nfnetlink.h":
         u_int8_t version
         u_int16_t res_id
 
+cdef extern from "libnfnetlink/libnfnetlink.h":
+    struct nfnl_handle:
+        pass
+    unsigned int nfnl_rcvbufsiz(nfnl_handle *h, unsigned int size)
+
 cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
     enum nfqnl_config_mode:
         NFQNL_COPY_NONE
@@ -131,7 +143,8 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
-
+    nfnl_handle *nfq_nfnlh(nfq_handle *h)
+    
 # Dummy defines from linux/socket.h:
 cdef enum: #  Protocol families, same as address families.
     PF_INET = 2
