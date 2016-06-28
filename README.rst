@@ -26,6 +26,8 @@ it. ::
         nfqueue.run()
     except KeyboardInterrupt:
         print
+    
+    nfqueue.unbind()
 
 To send packets destined for your LAN to the script, type something like::
 
