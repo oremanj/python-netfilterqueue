@@ -25,7 +25,7 @@ setup(
     ext_modules = [ext],
     name="NetfilterQueue",
     version=VERSION,
-    license="BSD",
+    license="MIT",
     author="Matthew Fox",
     author_email="matt@tansen.ca",
     url="https://github.com/kti/python-netfilterqueue",
@@ -34,7 +34,7 @@ setup(
     download_url="http://pypi.python.org/packages/source/N/NetfilterQueue/NetfilterQueue-%s.tar.gz" % VERSION,
     classifiers = [
         "Development Status :: 4 - Beta",
-        "License :: OSI Approved :: BSD License",
+        "License :: OSI Approved :: MIT License",
         "Operating System :: POSIX :: Linux",
         "Topic :: System :: Networking",
         "Topic :: Security",
