@@ -25,7 +25,7 @@ it. ::
     try:
         nfqueue.run()
     except KeyboardInterrupt:
-        print
+        print('')
     
     nfqueue.unbind()
 
@@ -85,7 +85,7 @@ NetfilterQueue objects
 A NetfilterQueue object represents a single queue. Configure your queue with
 a call to ``bind``, then start receiving packets with a call to ``run``.
 
-``QueueHandler.bind(queue_num, callback[, max_len[, mode[, range]]])``
+``QueueHandler.bind(queue_num, callback[, max_len[, mode[, range, [sock_len]]]])``
     Create and bind to the queue. ``queue_num`` must match the number in your
     iptables rule. ``callback`` is a function or method that takes one
     argument, a Packet object (see below). ``max_len`` sets the largest number
@@ -94,12 +94,17 @@ a call to ``bind``, then start receiving packets with a call to ``run``.
     data is provided to your script. Use the constants above. ``range`` defines
     how many bytes of the packet you want to get. For example, if you only want
     the source and destination IPs of a IPv4 packet, ``range`` could be 20.
+    ``sock_len`` sets the receive socket buffer size.
 
 ``QueueHandler.unbind()``
     Remove the queue. Packets matched by your iptables rule will be dropped.
 
-``QueueHandler.run()``
-    Send packets to your callback. This method blocks.
+``QueueHandler.get_fd()``
+    Get the file descriptor of the queue handler.
+
+``QueueHandler.run([block])``
+    Send packets to your callback. By default, this method blocks. Set
+    block=False to let your thread continue. You can get the
 
 Packet objects
 --------------
@@ -107,10 +112,10 @@ Packet objects
 Objects of this type are passed to your callback.
 
 ``Packet.get_payload()``
-    Return the packet's payload as a string.
+    Return the packet's payload as a string (Python 2) or bytes (Python 3).
 
 ``Packet.set_payload(payload)``
-    Set the packet payload. ``payload`` is bytes.
+    Set the packet payload. ``payload`` is a bytes.
 
 ``Packet.get_payload_len()``
     Return the size of the payload.
