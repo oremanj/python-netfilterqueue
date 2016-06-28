@@ -203,11 +203,6 @@ More details coming soon...
       arrived on or is leaving on
     * Probably other stuff is omitted too
     
-* When a packet has been marked, we use nfq_set_verdict_mark rather than
-  nfq_set_verdict2. Apparently nfq_set_verdict_mark is 
-  `broken <http://netfilter.org/projects/libnetfilter_queue/doxygen/group__Queue.html#ga1986d6387c5aa2a837c02e87ae3b45ff>`_,
-  although it works for me.
-
 Source
 ======
 

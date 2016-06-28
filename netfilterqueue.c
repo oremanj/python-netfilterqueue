@@ -2032,7 +2032,7 @@ static void __pyx_f_14netfilterqueue_6Packet_verdict(struct __pyx_obj_14netfilte
  *             modified_payload_len = len(self._given_payload)
  *             modified_payload = self._given_payload             # <<<<<<<<<<<<<<
  *         if self._mark_is_set:
- *             nfq_set_verdict_mark(
+ *             nfq_set_verdict2(
  */
     __pyx_t_4 = __Pyx_PyObject_AsUString(__pyx_v_self->_given_payload); if (unlikely((!__pyx_t_4) && PyErr_Occurred())) __PYX_ERR(0, 81, __pyx_L1_error)
     __pyx_v_modified_payload = __pyx_t_4;
@@ -2050,7 +2050,7 @@ static void __pyx_f_14netfilterqueue_6Packet_verdict(struct __pyx_obj_14netfilte
  *             modified_payload_len = len(self._given_payload)
  *             modified_payload = self._given_payload
  *         if self._mark_is_set:             # <<<<<<<<<<<<<<
- *             nfq_set_verdict_mark(
+ *             nfq_set_verdict2(
  *                 self._qh,
  */
   __pyx_t_1 = (__pyx_v_self->_mark_is_set != 0);
@@ -2059,17 +2059,17 @@ static void __pyx_f_14netfilterqueue_6Packet_verdict(struct __pyx_obj_14netfilte
     /* "netfilterqueue.pyx":83
  *             modified_payload = self._given_payload
  *         if self._mark_is_set:
- *             nfq_set_verdict_mark(             # <<<<<<<<<<<<<<
+ *             nfq_set_verdict2(             # <<<<<<<<<<<<<<
  *                 self._qh,
  *                 self.id,
  */
-    nfq_set_verdict_mark(__pyx_v_self->_qh, __pyx_v_self->id, __pyx_v_verdict, htonl(__pyx_v_self->_given_mark), __pyx_v_modified_payload_len, __pyx_v_modified_payload);
+    nfq_set_verdict2(__pyx_v_self->_qh, __pyx_v_self->id, __pyx_v_verdict, htonl(__pyx_v_self->_given_mark), __pyx_v_modified_payload_len, __pyx_v_modified_payload);
 
     /* "netfilterqueue.pyx":82
  *             modified_payload_len = len(self._given_payload)
  *             modified_payload = self._given_payload
  *         if self._mark_is_set:             # <<<<<<<<<<<<<<
- *             nfq_set_verdict_mark(
+ *             nfq_set_verdict2(
  *                 self._qh,
  */
     goto __pyx_L5;

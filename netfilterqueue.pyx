@@ -80,7 +80,7 @@ cdef class Packet:
             modified_payload_len = len(self._given_payload)
             modified_payload = self._given_payload
         if self._mark_is_set:
-            nfq_set_verdict_mark(
+            nfq_set_verdict2(
                 self._qh,
                 self.id,
                 verdict,

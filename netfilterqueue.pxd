@@ -129,7 +129,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
                           u_int32_t data_len,
                           unsigned char *buf) nogil
 
-    int nfq_set_verdict_mark(nfq_q_handle *qh,
+    int nfq_set_verdict2(nfq_q_handle *qh,
                             u_int32_t id,
                             u_int32_t verdict,
                             u_int32_t mark,
