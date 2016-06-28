@@ -4590,7 +4590,7 @@ static PyObject *__pyx_pf_14netfilterqueue_14NetfilterQueue_10run(struct __pyx_o
  * 
  *     def run_socket(self, s):             # <<<<<<<<<<<<<<
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:
+ *         while True:
  */
 
 /* Python wrapper */
@@ -4632,51 +4632,51 @@ static PyObject *__pyx_pf_14netfilterqueue_14NetfilterQueue_12run_socket(struct 
   /* "netfilterqueue.pyx":216
  *     def run_socket(self, s):
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:             # <<<<<<<<<<<<<<
- *             while True:
+ *         while True:             # <<<<<<<<<<<<<<
+ *             try:
  *                 buf = s.recv(BufferSize)
  */
-  {
-    __Pyx_PyThreadState_declare
-    __Pyx_PyThreadState_assign
-    __Pyx_ExceptionSave(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3);
-    __Pyx_XGOTREF(__pyx_t_1);
-    __Pyx_XGOTREF(__pyx_t_2);
-    __Pyx_XGOTREF(__pyx_t_3);
-    /*try:*/ {
+  while (1) {
 
-      /* "netfilterqueue.pyx":217
+    /* "netfilterqueue.pyx":217
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:
- *             while True:             # <<<<<<<<<<<<<<
+ *         while True:
+ *             try:             # <<<<<<<<<<<<<<
  *                 buf = s.recv(BufferSize)
  *                 rv = len(buf)
  */
-      while (1) {
+    {
+      __Pyx_PyThreadState_declare
+      __Pyx_PyThreadState_assign
+      __Pyx_ExceptionSave(&__pyx_t_1, &__pyx_t_2, &__pyx_t_3);
+      __Pyx_XGOTREF(__pyx_t_1);
+      __Pyx_XGOTREF(__pyx_t_2);
+      __Pyx_XGOTREF(__pyx_t_3);
+      /*try:*/ {
 
         /* "netfilterqueue.pyx":218
- *         try:
- *             while True:
+ *         while True:
+ *             try:
  *                 buf = s.recv(BufferSize)             # <<<<<<<<<<<<<<
  *                 rv = len(buf)
  *                 if rv >= 0:
  */
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_recv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L3_error)
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_s, __pyx_n_s_recv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 218, __pyx_L5_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 218, __pyx_L3_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__6, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 218, __pyx_L5_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_XDECREF_SET(__pyx_v_buf, __pyx_t_5);
         __pyx_t_5 = 0;
 
         /* "netfilterqueue.pyx":219
- *             while True:
+ *             try:
  *                 buf = s.recv(BufferSize)
  *                 rv = len(buf)             # <<<<<<<<<<<<<<
  *                 if rv >= 0:
  *                     nfq_handle_packet(self.h, buf, rv)
  */
-        __pyx_t_6 = PyObject_Length(__pyx_v_buf); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 219, __pyx_L3_error)
+        __pyx_t_6 = PyObject_Length(__pyx_v_buf); if (unlikely(__pyx_t_6 == -1)) __PYX_ERR(0, 219, __pyx_L5_error)
         __pyx_v_rv = __pyx_t_6;
 
         /* "netfilterqueue.pyx":220
@@ -4696,7 +4696,7 @@ static PyObject *__pyx_pf_14netfilterqueue_14NetfilterQueue_12run_socket(struct 
  *                 else:
  *                     break
  */
-          __pyx_t_8 = __Pyx_PyObject_AsString(__pyx_v_buf); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 221, __pyx_L3_error)
+          __pyx_t_8 = __Pyx_PyObject_AsString(__pyx_v_buf); if (unlikely((!__pyx_t_8) && PyErr_Occurred())) __PYX_ERR(0, 221, __pyx_L5_error)
           nfq_handle_packet(__pyx_v_self->h, __pyx_t_8, __pyx_v_rv);
 
           /* "netfilterqueue.pyx":220
@@ -4713,149 +4713,212 @@ static PyObject *__pyx_pf_14netfilterqueue_14NetfilterQueue_12run_socket(struct 
  *                     nfq_handle_packet(self.h, buf, rv)
  *                 else:
  *                     break             # <<<<<<<<<<<<<<
- *         except socket.error as e:
- *             err = e.args[0]
+ *             except socket.error as e:
+ *                 err = e.args[0]
  */
         /*else*/ {
-          goto __pyx_L12_break;
+          goto __pyx_L10_try_break;
         }
         __pyx_L13:;
-      }
-      __pyx_L12_break:;
 
-      /* "netfilterqueue.pyx":216
- *     def run_socket(self, s):
+        /* "netfilterqueue.pyx":217
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:             # <<<<<<<<<<<<<<
- *             while True:
+ *         while True:
+ *             try:             # <<<<<<<<<<<<<<
  *                 buf = s.recv(BufferSize)
+ *                 rv = len(buf)
  */
-    }
-    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    goto __pyx_L10_try_end;
-    __pyx_L3_error:;
-    __Pyx_PyThreadState_assign
-    __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
+      }
+      __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+      goto __pyx_L12_try_end;
+      __pyx_L5_error:;
+      __Pyx_PyThreadState_assign
+      __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "netfilterqueue.pyx":224
+      /* "netfilterqueue.pyx":224
  *                 else:
  *                     break
- *         except socket.error as e:             # <<<<<<<<<<<<<<
- *             err = e.args[0]
- *             if err == EAGAIN or err == EWOULDBLOCK:
+ *             except socket.error as e:             # <<<<<<<<<<<<<<
+ *                 err = e.args[0]
+ *                 if err == ENOBUFS:
  */
-    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_socket); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 224, __pyx_L5_except_error)
-    __Pyx_GOTREF(__pyx_t_5);
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L5_except_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    __pyx_t_9 = __Pyx_PyErr_ExceptionMatches(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (__pyx_t_9) {
-      __Pyx_AddTraceback("netfilterqueue.NetfilterQueue.run_socket", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_5, &__pyx_t_10) < 0) __PYX_ERR(0, 224, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_socket); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 224, __pyx_L7_except_error)
       __Pyx_GOTREF(__pyx_t_5);
-      __Pyx_GOTREF(__pyx_t_10);
-      __Pyx_INCREF(__pyx_t_5);
-      __pyx_v_e = __pyx_t_5;
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_error); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L7_except_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_9 = __Pyx_PyErr_ExceptionMatches(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      if (__pyx_t_9) {
+        __Pyx_AddTraceback("netfilterqueue.NetfilterQueue.run_socket", __pyx_clineno, __pyx_lineno, __pyx_filename);
+        if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_5, &__pyx_t_10) < 0) __PYX_ERR(0, 224, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_GOTREF(__pyx_t_10);
+        __Pyx_INCREF(__pyx_t_5);
+        __Pyx_XDECREF_SET(__pyx_v_e, __pyx_t_5);
 
-      /* "netfilterqueue.pyx":225
+        /* "netfilterqueue.pyx":225
  *                     break
- *         except socket.error as e:
- *             err = e.args[0]             # <<<<<<<<<<<<<<
- *             if err == EAGAIN or err == EWOULDBLOCK:
- *                 # This should only happen with a non-blocking socket, and the
+ *             except socket.error as e:
+ *                 err = e.args[0]             # <<<<<<<<<<<<<<
+ *                 if err == ENOBUFS:
+ *                     continue
  */
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_args); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 225, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_12 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 225, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_12);
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_v_err = __pyx_t_12;
-      __pyx_t_12 = 0;
+        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_args); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 225, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __pyx_t_12 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 225, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __Pyx_XDECREF_SET(__pyx_v_err, __pyx_t_12);
+        __pyx_t_12 = 0;
 
-      /* "netfilterqueue.pyx":226
- *         except socket.error as e:
- *             err = e.args[0]
- *             if err == EAGAIN or err == EWOULDBLOCK:             # <<<<<<<<<<<<<<
- *                 # This should only happen with a non-blocking socket, and the
- *                 # app should call run_socket again when more data is available.
+        /* "netfilterqueue.pyx":226
+ *             except socket.error as e:
+ *                 err = e.args[0]
+ *                 if err == ENOBUFS:             # <<<<<<<<<<<<<<
+ *                     continue
+ *                 elif err == EAGAIN or err == EWOULDBLOCK:
  */
-      __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_e_14netfilterqueue_EAGAIN); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_12);
-      __pyx_t_11 = PyObject_RichCompare(__pyx_v_err, __pyx_t_12, Py_EQ); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      if (!__pyx_t_13) {
-      } else {
+        __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_e_14netfilterqueue_ENOBUFS); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 226, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_11 = PyObject_RichCompare(__pyx_v_err, __pyx_t_12, Py_EQ); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 226, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_7 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_7 < 0)) __PYX_ERR(0, 226, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+        if (__pyx_t_7) {
+
+          /* "netfilterqueue.pyx":227
+ *                 err = e.args[0]
+ *                 if err == ENOBUFS:
+ *                     continue             # <<<<<<<<<<<<<<
+ *                 elif err == EAGAIN or err == EWOULDBLOCK:
+ *                     # This should only happen with a non-blocking socket, and the
+ */
+          goto __pyx_L15_except_continue;
+
+          /* "netfilterqueue.pyx":226
+ *             except socket.error as e:
+ *                 err = e.args[0]
+ *                 if err == ENOBUFS:             # <<<<<<<<<<<<<<
+ *                     continue
+ *                 elif err == EAGAIN or err == EWOULDBLOCK:
+ */
+        }
+
+        /* "netfilterqueue.pyx":228
+ *                 if err == ENOBUFS:
+ *                     continue
+ *                 elif err == EAGAIN or err == EWOULDBLOCK:             # <<<<<<<<<<<<<<
+ *                     # This should only happen with a non-blocking socket, and the
+ *                     # app should call run_socket again when more data is available.
+ */
+        __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_e_14netfilterqueue_EAGAIN); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __pyx_t_12 = PyObject_RichCompare(__pyx_v_err, __pyx_t_11, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+        __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        if (!__pyx_t_13) {
+        } else {
+          __pyx_t_7 = __pyx_t_13;
+          goto __pyx_L17_bool_binop_done;
+        }
+        __pyx_t_12 = __Pyx_PyInt_From_int(__pyx_e_14netfilterqueue_EWOULDBLOCK); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __pyx_t_11 = PyObject_RichCompare(__pyx_v_err, __pyx_t_12, Py_EQ); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
+        __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 228, __pyx_L7_except_error)
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __pyx_t_7 = __pyx_t_13;
-        goto __pyx_L17_bool_binop_done;
-      }
-      __pyx_t_11 = __Pyx_PyInt_From_int(__pyx_e_14netfilterqueue_EWOULDBLOCK); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_11);
-      __pyx_t_12 = PyObject_RichCompare(__pyx_v_err, __pyx_t_11, Py_EQ); __Pyx_XGOTREF(__pyx_t_12); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-      __pyx_t_13 = __Pyx_PyObject_IsTrue(__pyx_t_12); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 226, __pyx_L5_except_error)
-      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
-      __pyx_t_7 = __pyx_t_13;
-      __pyx_L17_bool_binop_done:;
-      if (__pyx_t_7) {
-        goto __pyx_L16;
-      }
+        __pyx_L17_bool_binop_done:;
+        if (__pyx_t_7) {
 
-      /* "netfilterqueue.pyx":232
- *             else:
- *                 # This is bad. Let the caller handle it.
- *                 raise e             # <<<<<<<<<<<<<<
+          /* "netfilterqueue.pyx":231
+ *                     # This should only happen with a non-blocking socket, and the
+ *                     # app should call run_socket again when more data is available.
+ *                     break             # <<<<<<<<<<<<<<
+ *                 else:
+ *                     # This is bad. Let the caller handle it.
+ */
+          goto __pyx_L14_except_break;
+
+          /* "netfilterqueue.pyx":228
+ *                 if err == ENOBUFS:
+ *                     continue
+ *                 elif err == EAGAIN or err == EWOULDBLOCK:             # <<<<<<<<<<<<<<
+ *                     # This should only happen with a non-blocking socket, and the
+ *                     # app should call run_socket again when more data is available.
+ */
+        }
+
+        /* "netfilterqueue.pyx":234
+ *                 else:
+ *                     # This is bad. Let the caller handle it.
+ *                     raise e             # <<<<<<<<<<<<<<
  * 
  * PROTOCOLS = {
  */
-      /*else*/ {
-        __Pyx_Raise(__pyx_v_e, 0, 0, 0);
-        __PYX_ERR(0, 232, __pyx_L5_except_error)
+        /*else*/ {
+          __Pyx_Raise(__pyx_v_e, 0, 0, 0);
+          __PYX_ERR(0, 234, __pyx_L7_except_error)
+        }
+        __pyx_L14_except_break:;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        goto __pyx_L10_try_break;
+        __pyx_L15_except_continue:;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        goto __pyx_L11_try_continue;
       }
-      __pyx_L16:;
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      goto __pyx_L4_exception_handled;
-    }
-    goto __pyx_L5_except_error;
-    __pyx_L5_except_error:;
+      goto __pyx_L7_except_error;
+      __pyx_L7_except_error:;
 
-    /* "netfilterqueue.pyx":216
- *     def run_socket(self, s):
+      /* "netfilterqueue.pyx":217
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:             # <<<<<<<<<<<<<<
- *             while True:
+ *         while True:
+ *             try:             # <<<<<<<<<<<<<<
  *                 buf = s.recv(BufferSize)
+ *                 rv = len(buf)
  */
-    __Pyx_PyThreadState_assign
-    __Pyx_XGIVEREF(__pyx_t_1);
-    __Pyx_XGIVEREF(__pyx_t_2);
-    __Pyx_XGIVEREF(__pyx_t_3);
-    __Pyx_ExceptionReset(__pyx_t_1, __pyx_t_2, __pyx_t_3);
-    goto __pyx_L1_error;
-    __pyx_L4_exception_handled:;
-    __Pyx_PyThreadState_assign
-    __Pyx_XGIVEREF(__pyx_t_1);
-    __Pyx_XGIVEREF(__pyx_t_2);
-    __Pyx_XGIVEREF(__pyx_t_3);
-    __Pyx_ExceptionReset(__pyx_t_1, __pyx_t_2, __pyx_t_3);
-    __pyx_L10_try_end:;
+      __Pyx_PyThreadState_assign
+      __Pyx_XGIVEREF(__pyx_t_1);
+      __Pyx_XGIVEREF(__pyx_t_2);
+      __Pyx_XGIVEREF(__pyx_t_3);
+      __Pyx_ExceptionReset(__pyx_t_1, __pyx_t_2, __pyx_t_3);
+      goto __pyx_L1_error;
+      __pyx_L10_try_break:;
+      __Pyx_PyThreadState_assign
+      __Pyx_XGIVEREF(__pyx_t_1);
+      __Pyx_XGIVEREF(__pyx_t_2);
+      __Pyx_XGIVEREF(__pyx_t_3);
+      __Pyx_ExceptionReset(__pyx_t_1, __pyx_t_2, __pyx_t_3);
+      goto __pyx_L4_break;
+      __pyx_L11_try_continue:;
+      __Pyx_PyThreadState_assign
+      __Pyx_XGIVEREF(__pyx_t_1);
+      __Pyx_XGIVEREF(__pyx_t_2);
+      __Pyx_XGIVEREF(__pyx_t_3);
+      __Pyx_ExceptionReset(__pyx_t_1, __pyx_t_2, __pyx_t_3);
+      goto __pyx_L3_continue;
+      __pyx_L12_try_end:;
+    }
+    __pyx_L3_continue:;
   }
+  __pyx_L4_break:;
 
   /* "netfilterqueue.pyx":214
  *                     break
  * 
  *     def run_socket(self, s):             # <<<<<<<<<<<<<<
  *         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
- *         try:
+ *         while True:
  */
 
   /* function exit code */
@@ -5404,8 +5467,8 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__5);
 
   /* "netfilterqueue.pyx":218
- *         try:
- *             while True:
+ *         while True:
+ *             try:
  *                 buf = s.recv(BufferSize)             # <<<<<<<<<<<<<<
  *                 rv = len(buf)
  *                 if rv >= 0:
@@ -5750,158 +5813,158 @@ PyMODINIT_FUNC PyInit_netfilterqueue(void)
  */
   __pyx_k__4 = NFQNL_COPY_PACKET;
 
-  /* "netfilterqueue.pyx":235
+  /* "netfilterqueue.pyx":237
  * 
  * PROTOCOLS = {
  *     0: "HOPOPT",             # <<<<<<<<<<<<<<
  *     1: "ICMP",
  *     2: "IGMP",
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 235, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_0, __pyx_n_s_HOPOPT) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_1, __pyx_n_s_ICMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_2, __pyx_n_s_IGMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_3, __pyx_n_s_GGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_4, __pyx_n_s_IP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_5, __pyx_n_s_ST) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_6, __pyx_n_s_TCP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_7, __pyx_n_s_CBT) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_8, __pyx_n_s_EGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_9, __pyx_n_s_IGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_10, __pyx_kp_s_BBN_RCC_MON) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_11, __pyx_kp_s_NVP_II) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_12, __pyx_n_s_PUP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_13, __pyx_n_s_ARGUS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_14, __pyx_n_s_EMCON) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_15, __pyx_n_s_XNET) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_16, __pyx_n_s_CHAOS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_17, __pyx_n_s_UDP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_18, __pyx_n_s_MUX) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_19, __pyx_kp_s_DCN_MEAS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_20, __pyx_n_s_HMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_21, __pyx_n_s_PRM) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_22, __pyx_kp_s_XNS_IDP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_23, __pyx_kp_s_TRUNK_1) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_24, __pyx_kp_s_TRUNK_2) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_25, __pyx_kp_s_LEAF_1) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_26, __pyx_kp_s_LEAF_2) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_27, __pyx_n_s_RDP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_28, __pyx_n_s_IRTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_29, __pyx_kp_s_ISO_TP4) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_30, __pyx_n_s_NETBLT) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_31, __pyx_kp_s_MFE_NSP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_32, __pyx_kp_s_MERIT_INP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_33, __pyx_n_s_DCCP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_34, __pyx_kp_s_3PC) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_35, __pyx_n_s_IDPR) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_36, __pyx_n_s_XTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_37, __pyx_n_s_DDP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_38, __pyx_kp_s_IDPR_CMTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_39, __pyx_kp_s_TP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_40, __pyx_n_s_IL) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_41, __pyx_n_s_IPv6) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_42, __pyx_n_s_SDRP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_43, __pyx_kp_s_IPv6_Route) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_44, __pyx_kp_s_IPv6_Frag) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_45, __pyx_n_s_IDRP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_46, __pyx_n_s_RSVP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_47, __pyx_n_s_GRE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_48, __pyx_n_s_DSR) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_49, __pyx_n_s_BNA) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_50, __pyx_n_s_ESP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_51, __pyx_n_s_AH) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_52, __pyx_kp_s_I_NLSP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_53, __pyx_n_s_SWIPE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_54, __pyx_n_s_NARP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_55, __pyx_n_s_MOBILE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_56, __pyx_n_s_TLSP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_57, __pyx_n_s_SKIP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_58, __pyx_kp_s_IPv6_ICMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_59, __pyx_kp_s_IPv6_NoNxt) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_60, __pyx_kp_s_IPv6_Opts) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_61, __pyx_kp_s_any_host_internal_protocol) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_62, __pyx_n_s_CFTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_63, __pyx_kp_s_any_local_network) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_64, __pyx_kp_s_SAT_EXPAK) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_65, __pyx_n_s_KRYPTOLAN) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_66, __pyx_n_s_RVD) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_67, __pyx_n_s_IPPC) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_68, __pyx_kp_s_any_distributed_file_system) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_69, __pyx_kp_s_SAT_MON) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_70, __pyx_n_s_VISA) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_71, __pyx_n_s_IPCV) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_72, __pyx_n_s_CPNX) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_73, __pyx_n_s_CPHB) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_74, __pyx_n_s_WSN) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_75, __pyx_n_s_PVP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_76, __pyx_kp_s_BR_SAT_MON) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_77, __pyx_kp_s_SUN_ND) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_78, __pyx_kp_s_WB_MON) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_79, __pyx_kp_s_WB_EXPAK) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_80, __pyx_kp_s_ISO_IP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_81, __pyx_n_s_VMTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_82, __pyx_kp_s_SECURE_VMTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_83, __pyx_n_s_VINES) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_84, __pyx_n_s_TTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_85, __pyx_kp_s_NSFNET_IGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_86, __pyx_n_s_DGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_87, __pyx_n_s_TCF) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_88, __pyx_n_s_EIGRP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_89, __pyx_n_s_OSPFIGP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_90, __pyx_kp_s_Sprite_RPC) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_91, __pyx_n_s_LARP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_92, __pyx_n_s_MTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_93, __pyx_kp_s_AX_25) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_94, __pyx_n_s_IPIP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_95, __pyx_n_s_MICP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_96, __pyx_kp_s_SCC_SP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_97, __pyx_n_s_ETHERIP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_98, __pyx_n_s_ENCAP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_99, __pyx_kp_s_any_private_encryption_scheme) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_100, __pyx_n_s_GMTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_101, __pyx_n_s_IFMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_102, __pyx_n_s_PNNI) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_103, __pyx_n_s_PIM) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_104, __pyx_n_s_ARIS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_105, __pyx_n_s_SCPS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_106, __pyx_n_s_QNX) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_107, __pyx_kp_s_A_N) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_108, __pyx_n_s_IPComp) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_109, __pyx_n_s_SNP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_110, __pyx_kp_s_Compaq_Peer) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_111, __pyx_kp_s_IPX_in_IP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_112, __pyx_n_s_VRRP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_113, __pyx_n_s_PGM) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_114, __pyx_kp_s_any_0_hop_protocol) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_115, __pyx_n_s_L2TP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_116, __pyx_n_s_DDX) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_117, __pyx_n_s_IATP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_118, __pyx_n_s_STP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_119, __pyx_n_s_SRP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_120, __pyx_n_s_UTI) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_121, __pyx_n_s_SMP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_122, __pyx_n_s_SM) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_123, __pyx_n_s_PTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_124, __pyx_n_s_ISIS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_125, __pyx_n_s_FIRE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_126, __pyx_n_s_CRTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_127, __pyx_n_s_CRUDP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_128, __pyx_n_s_SSCOPMCE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_129, __pyx_n_s_IPLT) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_130, __pyx_n_s_SPS) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_131, __pyx_n_s_PIPE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_132, __pyx_n_s_SCTP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_133, __pyx_n_s_FC) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_134, __pyx_kp_s_RSVP_E2E_IGNORE) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_135, __pyx_n_s_Mobility) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_136, __pyx_n_s_UDPLite) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_137, __pyx_kp_s_MPLS_in_IP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_138, __pyx_n_s_manet) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_139, __pyx_n_s_HIP) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_140, __pyx_n_s_Shim6) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_int_255, __pyx_n_s_Reserved) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_PROTOCOLS, __pyx_t_1) < 0) __PYX_ERR(0, 234, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_0, __pyx_n_s_HOPOPT) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_1, __pyx_n_s_ICMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_2, __pyx_n_s_IGMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_3, __pyx_n_s_GGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_4, __pyx_n_s_IP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_5, __pyx_n_s_ST) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_6, __pyx_n_s_TCP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_7, __pyx_n_s_CBT) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_8, __pyx_n_s_EGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_9, __pyx_n_s_IGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_10, __pyx_kp_s_BBN_RCC_MON) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_11, __pyx_kp_s_NVP_II) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_12, __pyx_n_s_PUP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_13, __pyx_n_s_ARGUS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_14, __pyx_n_s_EMCON) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_15, __pyx_n_s_XNET) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_16, __pyx_n_s_CHAOS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_17, __pyx_n_s_UDP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_18, __pyx_n_s_MUX) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_19, __pyx_kp_s_DCN_MEAS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_20, __pyx_n_s_HMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_21, __pyx_n_s_PRM) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_22, __pyx_kp_s_XNS_IDP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_23, __pyx_kp_s_TRUNK_1) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_24, __pyx_kp_s_TRUNK_2) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_25, __pyx_kp_s_LEAF_1) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_26, __pyx_kp_s_LEAF_2) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_27, __pyx_n_s_RDP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_28, __pyx_n_s_IRTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_29, __pyx_kp_s_ISO_TP4) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_30, __pyx_n_s_NETBLT) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_31, __pyx_kp_s_MFE_NSP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_32, __pyx_kp_s_MERIT_INP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_33, __pyx_n_s_DCCP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_34, __pyx_kp_s_3PC) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_35, __pyx_n_s_IDPR) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_36, __pyx_n_s_XTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_37, __pyx_n_s_DDP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_38, __pyx_kp_s_IDPR_CMTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_39, __pyx_kp_s_TP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_40, __pyx_n_s_IL) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_41, __pyx_n_s_IPv6) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_42, __pyx_n_s_SDRP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_43, __pyx_kp_s_IPv6_Route) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_44, __pyx_kp_s_IPv6_Frag) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_45, __pyx_n_s_IDRP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_46, __pyx_n_s_RSVP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_47, __pyx_n_s_GRE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_48, __pyx_n_s_DSR) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_49, __pyx_n_s_BNA) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_50, __pyx_n_s_ESP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_51, __pyx_n_s_AH) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_52, __pyx_kp_s_I_NLSP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_53, __pyx_n_s_SWIPE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_54, __pyx_n_s_NARP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_55, __pyx_n_s_MOBILE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_56, __pyx_n_s_TLSP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_57, __pyx_n_s_SKIP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_58, __pyx_kp_s_IPv6_ICMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_59, __pyx_kp_s_IPv6_NoNxt) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_60, __pyx_kp_s_IPv6_Opts) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_61, __pyx_kp_s_any_host_internal_protocol) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_62, __pyx_n_s_CFTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_63, __pyx_kp_s_any_local_network) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_64, __pyx_kp_s_SAT_EXPAK) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_65, __pyx_n_s_KRYPTOLAN) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_66, __pyx_n_s_RVD) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_67, __pyx_n_s_IPPC) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_68, __pyx_kp_s_any_distributed_file_system) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_69, __pyx_kp_s_SAT_MON) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_70, __pyx_n_s_VISA) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_71, __pyx_n_s_IPCV) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_72, __pyx_n_s_CPNX) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_73, __pyx_n_s_CPHB) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_74, __pyx_n_s_WSN) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_75, __pyx_n_s_PVP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_76, __pyx_kp_s_BR_SAT_MON) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_77, __pyx_kp_s_SUN_ND) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_78, __pyx_kp_s_WB_MON) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_79, __pyx_kp_s_WB_EXPAK) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_80, __pyx_kp_s_ISO_IP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_81, __pyx_n_s_VMTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_82, __pyx_kp_s_SECURE_VMTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_83, __pyx_n_s_VINES) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_84, __pyx_n_s_TTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_85, __pyx_kp_s_NSFNET_IGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_86, __pyx_n_s_DGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_87, __pyx_n_s_TCF) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_88, __pyx_n_s_EIGRP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_89, __pyx_n_s_OSPFIGP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_90, __pyx_kp_s_Sprite_RPC) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_91, __pyx_n_s_LARP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_92, __pyx_n_s_MTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_93, __pyx_kp_s_AX_25) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_94, __pyx_n_s_IPIP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_95, __pyx_n_s_MICP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_96, __pyx_kp_s_SCC_SP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_97, __pyx_n_s_ETHERIP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_98, __pyx_n_s_ENCAP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_99, __pyx_kp_s_any_private_encryption_scheme) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_100, __pyx_n_s_GMTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_101, __pyx_n_s_IFMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_102, __pyx_n_s_PNNI) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_103, __pyx_n_s_PIM) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_104, __pyx_n_s_ARIS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_105, __pyx_n_s_SCPS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_106, __pyx_n_s_QNX) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_107, __pyx_kp_s_A_N) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_108, __pyx_n_s_IPComp) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_109, __pyx_n_s_SNP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_110, __pyx_kp_s_Compaq_Peer) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_111, __pyx_kp_s_IPX_in_IP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_112, __pyx_n_s_VRRP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_113, __pyx_n_s_PGM) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_114, __pyx_kp_s_any_0_hop_protocol) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_115, __pyx_n_s_L2TP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_116, __pyx_n_s_DDX) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_117, __pyx_n_s_IATP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_118, __pyx_n_s_STP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_119, __pyx_n_s_SRP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_120, __pyx_n_s_UTI) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_121, __pyx_n_s_SMP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_122, __pyx_n_s_SM) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_123, __pyx_n_s_PTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_124, __pyx_n_s_ISIS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_125, __pyx_n_s_FIRE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_126, __pyx_n_s_CRTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_127, __pyx_n_s_CRUDP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_128, __pyx_n_s_SSCOPMCE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_129, __pyx_n_s_IPLT) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_130, __pyx_n_s_SPS) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_131, __pyx_n_s_PIPE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_132, __pyx_n_s_SCTP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_133, __pyx_n_s_FC) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_134, __pyx_kp_s_RSVP_E2E_IGNORE) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_135, __pyx_n_s_Mobility) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_136, __pyx_n_s_UDPLite) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_137, __pyx_kp_s_MPLS_in_IP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_138, __pyx_n_s_manet) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_139, __pyx_n_s_HIP) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_140, __pyx_n_s_Shim6) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_int_255, __pyx_n_s_Reserved) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_PROTOCOLS, __pyx_t_1) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "netfilterqueue.pyx":1

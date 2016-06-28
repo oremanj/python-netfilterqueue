@@ -213,23 +213,25 @@ cdef class NetfilterQueue:
 
     def run_socket(self, s):
         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
-        try:
-            while True:
+        while True:
+            try:
                 buf = s.recv(BufferSize)
                 rv = len(buf)
                 if rv >= 0:
                     nfq_handle_packet(self.h, buf, rv)
                 else:
                     break
-        except socket.error as e:
-            err = e.args[0]
-            if err == EAGAIN or err == EWOULDBLOCK:
-                # This should only happen with a non-blocking socket, and the
-                # app should call run_socket again when more data is available.
-                pass
-            else:
-                # This is bad. Let the caller handle it.
-                raise e
+            except socket.error as e:
+                err = e.args[0]
+                if err == ENOBUFS:
+                    continue
+                elif err == EAGAIN or err == EWOULDBLOCK:
+                    # This should only happen with a non-blocking socket, and the
+                    # app should call run_socket again when more data is available.
+                    break
+                else:
+                    # This is bad. Let the caller handle it.
+                    raise e
 
 PROTOCOLS = {
     0: "HOPOPT",
