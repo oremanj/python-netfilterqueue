@@ -84,7 +84,7 @@ cdef class Packet:
                 self._qh,
                 self.id,
                 verdict,
-                htonl(self._given_mark),
+                self._given_mark,
                 modified_payload_len,
                 modified_payload)
         else:
