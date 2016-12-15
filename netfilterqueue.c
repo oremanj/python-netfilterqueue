@@ -2148,7 +2148,7 @@ static void __pyx_f_14netfilterqueue_6Packet_verdict(struct __pyx_obj_14netfilte
  *                 self._qh,
  *                 self.id,
  */
-    nfq_set_verdict2(__pyx_v_self->_qh, __pyx_v_self->id, __pyx_v_verdict, htonl(__pyx_v_self->_given_mark), __pyx_v_modified_payload_len, __pyx_v_modified_payload);
+    nfq_set_verdict2(__pyx_v_self->_qh, __pyx_v_self->id, __pyx_v_verdict, __pyx_v_self->_given_mark, __pyx_v_modified_payload_len, __pyx_v_modified_payload);
 
     /* "netfilterqueue.pyx":82
  *             modified_payload_len = len(self._given_payload)
