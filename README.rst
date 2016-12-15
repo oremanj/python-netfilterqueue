@@ -81,9 +81,9 @@ From source
 
 To install from source::
 
-    wget https://pypi.python.org/packages/7b/c3/204d47c1c47a7fd6ac1e4e341bdc6021f8142e6c7b6e488436592a6d2488/NetfilterQueue-0.7.tar.gz
-    tar -xvzf NetfilterQueue-0.7.tar.gz
-    cd NetfilterQueue-0.7
+    wget https://pypi.python.org/packages/94/5b/83d10952c1312fe056f8f2f524a4a59fdc9d56b84a67cae1ed779e2da50b/NetfilterQueue-0.8.tar.gz#md5=8e78db992ad3a73dd86fef05293fff65
+    tar -xvzf NetfilterQueue-0.8.tar.gz
+    cd NetfilterQueue-0.8
     python setup.py install
 
 If Cython is installed, Distutils will use it to regenerate the .c source from the .pyx. It will then compile the .c into a .so.
@@ -152,6 +152,9 @@ Objects of this type are passed to your callback.
 
 ``Packet.get_mark()``
     Get the mark already on the packet.
+
+``Packet.get_hw()``
+    Return the hardware address as a Python string.
 
 ``Packet.accept()``
     Accept the packet.
