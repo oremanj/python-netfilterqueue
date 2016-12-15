@@ -170,6 +170,7 @@ cdef class Packet:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
+    cdef nfqnl_msg_packet_hw *_hw
     cdef bint _verdict_is_set # True if verdict has been issued,
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
@@ -186,6 +187,8 @@ cdef class Packet:
     cdef Py_ssize_t payload_len
     cdef readonly char *payload
     cdef timeval timestamp
+    cdef u_int8_t hw_addr[8]
+
     # TODO: implement these
     #cdef u_int8_t hw_addr[8] # A eui64-formatted address?
     #cdef readonly u_int32_t nfmark
