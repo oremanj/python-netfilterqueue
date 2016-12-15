@@ -5817,11 +5817,11 @@ static int __Pyx_InitCachedConstants(void) {
   /* "netfilterqueue.pyx":8
  * License: MIT; see LICENSE.txt
  * """
- * VERSION = (0, 7, 0)             # <<<<<<<<<<<<<<
+ * VERSION = (0, 8, 0)             # <<<<<<<<<<<<<<
  * 
  * # Constants for module users
  */
-  __pyx_tuple__7 = PyTuple_Pack(3, __pyx_int_0, __pyx_int_7, __pyx_int_0); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 8, __pyx_L1_error)
+  __pyx_tuple__7 = PyTuple_Pack(3, __pyx_int_0, __pyx_int_8, __pyx_int_0); if (unlikely(!__pyx_tuple__7)) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__7);
   __Pyx_GIVEREF(__pyx_tuple__7);
   __Pyx_RefNannyFinishContext();
@@ -6096,7 +6096,7 @@ PyMODINIT_FUNC PyInit_netfilterqueue(void)
   /* "netfilterqueue.pyx":8
  * License: MIT; see LICENSE.txt
  * """
- * VERSION = (0, 7, 0)             # <<<<<<<<<<<<<<
+ * VERSION = (0, 8, 0)             # <<<<<<<<<<<<<<
  * 
  * # Constants for module users
  */

@@ -1,3 +1,7 @@
+v0.8, 15 Dec 2016
+    Add get_hw()
+    Fix byte order bug in set_mark
+
 v0.7, 28 June 2016
     Add Python 3 compatibility.
     Add sock_len argument to bind()
