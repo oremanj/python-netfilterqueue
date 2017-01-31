@@ -1,3 +1,6 @@
+v0.8.1 30 Jan 2017
+    Fix bug #25- crashing when used in OUTPUT or POSTROUTING chains
+
 v0.8, 15 Dec 2016
     Add get_hw()
     Fix byte order bug in set_mark

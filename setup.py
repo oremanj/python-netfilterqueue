@@ -1,6 +1,6 @@
 from distutils.core import setup, Extension
 
-VERSION = "0.8.1" # Remember to change netfilterqueue.pyx when version changes.
+VERSION = "0.8.1" # Remember to change CHANGES.txt and netfilterqueue.pyx when version changes.
 
 try:
     # Use Cython
