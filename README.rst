@@ -81,9 +81,8 @@ From source
 
 To install from source::
 
-    wget https://pypi.python.org/packages/94/5b/83d10952c1312fe056f8f2f524a4a59fdc9d56b84a67cae1ed779e2da50b/NetfilterQueue-0.8.tar.gz#md5=8e78db992ad3a73dd86fef05293fff65
-    tar -xvzf NetfilterQueue-0.8.tar.gz
-    cd NetfilterQueue-0.8
+    git clone git@github.com:kti/python-netfilterqueue.git
+    cd python-netfilterqueue
     python setup.py install
 
 If Cython is installed, Distutils will use it to regenerate the .c source from the .pyx. It will then compile the .c into a .so.
