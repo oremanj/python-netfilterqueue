@@ -5,7 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 8, 0)
+VERSION = (0, 8, 1)
 
 # Constants for module users
 COPY_NONE = 0
@@ -57,12 +57,10 @@ cdef class Packet:
         self._qh = qh
         self._nfa = nfa
         self._hdr = nfq_get_msg_packet_hdr(nfa)
-        self._hw = nfq_get_packet_hw(nfa)
 
         self.id = ntohl(self._hdr.packet_id)
         self.hw_protocol = ntohs(self._hdr.hw_protocol)
         self.hook = self._hdr.hook
-        self.hw_addr = self._hw.hw_addr
 
         self.payload_len = nfq_get_payload(self._nfa, &self.payload)
         if self.payload_len < 0:
@@ -101,6 +99,11 @@ cdef class Packet:
 
     def get_hw(self):
         """Return the hardware address as Python string."""
+        self._hw = nfq_get_packet_hw(self._nfa)
+        if self._hw == NULL:
+            # nfq_get_packet_hw doesn't work on OUTPUT and PREROUTING chains
+            return None
+        self.hw_addr = self._hw.hw_addr
         cdef object py_string
         if cpython.version.PY_MAJOR_VERSION >= 3:
             py_string = PyBytes_FromStringAndSize(<char*>self.hw_addr, 8)
