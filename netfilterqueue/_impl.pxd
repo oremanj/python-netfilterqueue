@@ -154,6 +154,8 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
+    u_int8_t nfq_get_indev(self._nfa)
+    u_int8_t nfq_get_outdev(self._nfa)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
 
 # Dummy defines from linux/socket.h:
