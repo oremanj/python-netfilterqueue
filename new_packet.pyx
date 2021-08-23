@@ -1,4 +1,4 @@
-class CPacket:
+cdef class CPacket:
     '''parent class designed to index/parse full tcp/ip packets (including ethernet). two alternate
     constructors are supplied to support nfqueue or raw sockets.
     raw socket:
@@ -9,17 +9,11 @@ class CPacket:
     objects in namedtuples or to index application data.
     '''
 
-    def __new__(cls, *args, **kwargs):
-        if (cls is RawPacket):
-            raise TypeError('RawPacket can only be used via inheritance.')
-
-        return object.__new__(cls)
-
     def __cinit__(self):
         self._verdict_is_set = False
         self._mark = 0
 
-        self.protocol = PROTO.NOT_SET
+        self.protocol = 0
 
     def __str__(self):
         cdef iphdr * hdr = < iphdr * > self.payload
@@ -51,7 +45,7 @@ class CPacket:
         # timestamp gets assigned via pointer/struct -> time_val: (t_sec, t_usec).
         nfq_get_timestamp(self._nfa, & self.timestamp)
 
-        cdef u_int_32_t self._mark = nfq_get_nfmark(nfa)
+        self._mark = nfq_get_nfmark(nfa)
 
         # if (self.continue_condition):
         #     self._before_exit()
@@ -88,45 +82,49 @@ class CPacket:
 
         self._verdict_is_set = True
 
-    cdef def parse(self) with nogil:
+    cdef def parse(self) nogil:
         '''index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
 
         cdef iphdr * ip_header = < iphdr * > self.payload
 
-        cdef u_int8_t iphdr_len = iphdr.tos & 15) * 4
+        cdef u_int8_t iphdr_len = iphdr.tos & 15 * 4
+
+        cdef tcphdr * tcp_header
+        cdef udphdr * udp_header
+        cdef icmphdr * icmp_header
 
         if (iphdr.protocol == IPPROTO_TCP):
 
-            cdef tcphdr * tcp_header = < tcphdr * > self.payload[iphdr_len:]
+            tcp_header[0] = < tcphdr * > self.payload[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_UDP):
-            cdef tcphdr * icmp_header = < tcphdr * > self.payload[iphdr_len:]
+            udp_header[0] = < udphdr * > self.payload[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_ICMP):
-            cdef icmphdr * icmp_header = < icmphdr * > self.payload[iphdr_len:]
+            icmp_header[0] = < icmphdr * > self.payload[iphdr_len:]
 
             return 0
 
         return 1
 
-    def _before_exit(self):
-        '''executes before returning from parse call.
-        May be overridden.
-        '''
-        pass
-
-    @property
-    def continue_condition(self):
-        '''controls whether the _before_exit method gets called. must return a boolean.
-        May be overridden.
-        '''
-        return True
+    # def _before_exit(self):
+    #     '''executes before returning from parse call.
+    #     May be overridden.
+    #     '''
+    #     pass
+    #
+    # @property
+    # def continue_condition(self):
+    #     '''controls whether the _before_exit method gets called. must return a boolean.
+    #     May be overridden.
+    #     '''
+    #     return True
 
 
 cdef class NetfilterQueue:
