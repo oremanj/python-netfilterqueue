@@ -193,5 +193,5 @@ cdef class CPacket:
 
     cdef int nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data)
     cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
-    cdef _parse(self, unsigned char *data)
+    cdef _parse(self, unsigned char **data)
     cdef void verdict(self, u_int32_t verdict)
