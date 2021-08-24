@@ -17,6 +17,19 @@ cdef u_int16_t MaxCopySize = 4096 - 80
 # formula: DEF_MAX_QUEUELEN * (MaxCopySize+SockOverhead) / 2
 cdef u_int32_t SockRcvSize = 1024 * 4796 // 2
 
+cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) with gil:
+
+    cdef NetfilterQueue nfqueue = <NetfilterQueue>data
+    cdef object user_callback = <object>nfqueue.user_callback
+
+    packet = CPacket()
+    with nogil:
+        packet.parse(qh, nfa)
+
+    user_callback(packet)
+
+    return 1
+
 
 cdef class CPacket:
     '''parent class designed to index/parse full tcp/ip packets (including ethernet). two alternate
@@ -33,29 +46,13 @@ cdef class CPacket:
         self._verdict_is_set = False
         self._mark = 0
 
-        self.protocol = 0
+        # self.protocol = 0
 
     # def __str__(self):
     #     cdef iphdr *hdr = <iphdr*>self.payload
     #     protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
     #
     #     return "%s packet, %s bytes" % (protocol, self.payload_len)
-
-    @staticmethod
-    cdef int nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
-
-        cdef NetfilterQueue nfqueue = <NetfilterQueue>data
-        cdef object user_callback = <object>nfqueue.user_callback
-
-        packet = CPacket()
-        with nogil:
-            packet.parse(qh, nfa)
-
-        # TODO: send to module callback here
-        # with gil:
-        user_callback(packet)
-
-        return 1
 
     # NOTE: this will be callback target for nfqueue
     cdef void parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil:
@@ -140,6 +137,9 @@ cdef class CPacket:
             )
 
         self._verdict_is_set = True
+
+    def get_ip_header(self):
+        return self.ip_header
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.
