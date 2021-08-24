@@ -88,7 +88,7 @@ cdef class CPacket:
         # with gil:
             # callback(self)
 
-    cdef _parse(self, readonly unsigned char *data):
+    cdef _parse(self, unsigned char *data):
         '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
@@ -103,19 +103,19 @@ cdef class CPacket:
 
         if (ip_header.protocol == IPPROTO_TCP):
 
-            *tcp_header = <tcphdr*>data[iphdr_len:]
+            tcp_header[0] = <tcphdr*>data[iphdr_len:]
 
             self.tcp_header = tcp_header
 
         if (ip_header.protocol == IPPROTO_UDP):
 
-            *udp_header = <udphdr*>data[iphdr_len:]
+            udp_header[0] = <udphdr*>data[iphdr_len:]
 
             self.udp_header = udp_header
 
         if (ip_header.protocol == IPPROTO_ICMP):
 
-            *icmp_header = <icmphdr*>data[iphdr_len:]
+            icmp_header[0] = <icmphdr*>data[iphdr_len:]
 
             self.icmp_header = icmp_header
 
