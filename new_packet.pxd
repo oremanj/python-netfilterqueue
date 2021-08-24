@@ -145,11 +145,11 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
 
     int nfq_fd(nfq_handle *h)
-    nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad)
-    int nfq_get_payload(nfq_data *nfad, unsigned char **data)
-    int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
+    nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad) nogil
+    int nfq_get_payload(nfq_data *nfad, unsigned char **data) nogil
+    int nfq_get_timestamp(nfq_data *nfad, timeval *tv) nogil
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
-    int nfq_get_nfmark (nfq_data *nfad)
+    int nfq_get_nfmark (nfq_data *nfad) nogil
     u_int8_t nfq_get_indev(nfq_data *nfad)
     u_int8_t nfq_get_outdev(nfq_data *nfad)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
