@@ -61,6 +61,11 @@ cdef class CPacket:
     cdef nfqnl_msg_packet_hdr *_hdr
     cdef nfqnl_msg_packet_hw *_hw
 
+    # protocol headers
+    cdef tcphdr tcp_header
+    cdef udphdr udp_header
+    cdef icmphdr icmp_header
+
     cdef u_int16_t __queue_num
     cdef bint threaded
 
@@ -73,6 +78,6 @@ cdef class CPacket:
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
-    cdef netfilter(nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data)
+    cdef netfilter(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data)
     cdef void verdict(self, u_int32_t verdict)
     cdef def parse(self) nogil

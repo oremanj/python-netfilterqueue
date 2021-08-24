@@ -21,14 +21,20 @@ cdef class CPacket:
 
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
+    @staticmethod
+    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data):
+
+        # cdef NetfilterQueue nfqueue = < NetfilterQueue > data
+        # cdef object user_callback = < object > nfqueue.user_callback
+
+        packet = CPacket()
+        packet.parse(qh, nfa)
+
     # NOTE: this will be callback target for nfqueue
-    cdef netfilter(nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data):
-        '''alternate constructor. used to start listener/proxy instances using nfqueue bindings.'''
+    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa) no gil:
+        '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
-
-        self = cls()
-        self.parse()
 
         self._qh = qh
         self._nfa = nfa
@@ -39,13 +45,17 @@ cdef class CPacket:
         self.hook = self._hdr.hook
 
         self.payload_len = nfq_get_payload(self._nfa, & self.data)
-        if self.payload_len < 0:
-            raise OSError("Failed to get payload of packet.")
+        # TODO: figure this out. cant use no gil if its here.
+        # if self.payload_len < 0:
+        #     raise OSError("Failed to get payload of packet.")
 
         # timestamp gets assigned via pointer/struct -> time_val: (t_sec, t_usec).
         nfq_get_timestamp(self._nfa, & self.timestamp)
 
         self._mark = nfq_get_nfmark(nfa)
+
+        # splitting packet by tcp/ip layers
+        cdef int error = parse()
 
         # if (self.continue_condition):
         #     self._before_exit()
@@ -82,8 +92,8 @@ cdef class CPacket:
 
         self._verdict_is_set = True
 
-    cdef def parse(self) nogil:
-        '''index tcp/ip packet layers 3 & 4 for use as instance objects.
+    cdef parse(self):
+        '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
 
@@ -97,17 +107,17 @@ cdef class CPacket:
 
         if (iphdr.protocol == IPPROTO_TCP):
 
-            tcp_header[0] = < tcphdr * > self.payload[iphdr_len:]
+            self.tcp_header = < tcphdr * > self.payload[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_UDP):
-            udp_header[0] = < udphdr * > self.payload[iphdr_len:]
+            self.udp_header = < udphdr * > self.payload[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_ICMP):
-            icmp_header[0] = < icmphdr * > self.payload[iphdr_len:]
+            self.icmp_header = < icmphdr * > self.payload[iphdr_len:]
 
             return 0
 
