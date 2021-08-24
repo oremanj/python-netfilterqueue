@@ -58,7 +58,7 @@ cdef class CPacket:
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
 
-        cdef readonly unsigned char *data
+        cdef unsigned char *data
 
         self._qh = qh
         self._nfa = nfa
