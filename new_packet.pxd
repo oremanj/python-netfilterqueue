@@ -177,17 +177,17 @@ cdef enum:
 cdef class CPacket:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
-    cdef nfqnl_msg_packet_hdr *_hdr
-    cdef nfqnl_msg_packet_hw *_hw
+    # cdef nfqnl_msg_packet_hdr *_hdr
+    # cdef nfqnl_msg_packet_hw *_hw
+
+    cdef u_int32_t id
+
 
     # protocol headers
     cdef iphdr *ip_header
     cdef tcphdr *tcp_header
     cdef udphdr *udp_header
     cdef icmphdr *icmp_header
-
-    # cdef u_int16_t __queue_num
-    # cdef bint threaded
 
     cdef bint _verdict_is_set
     cdef u_int32_t _mark

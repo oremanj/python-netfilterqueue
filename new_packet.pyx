@@ -64,11 +64,12 @@ cdef class CPacket:
 
         self._qh = qh
         self._nfa = nfa
-        self._hdr = nfq_get_msg_packet_hdr(nfa)
 
-        # self.id = ntohl(self._hdr.packet_id)
-        # self.hw_protocol = ntohs(self._hdr.hw_protocol)
-        # self.hook = self._hdr.hook
+        nfqnl_msg_packet_hdr *hdr = nfq_get_msg_packet_hdr(nfa)
+        self.id = ntohl(hdr.packet_id)
+        # NOTE: these are not needing at this moment.
+        # self.hw_protocol = ntohs(hdr.hw_protocol)
+        # self.hook = hdr.hook
 
         self.data_len = nfq_get_payload(self._nfa, &self.data)
         # TODO: figure this out. cant use no gil if its here.
@@ -118,22 +119,22 @@ cdef class CPacket:
         if self._verdict_is_set:
             raise RuntimeWarning("Verdict already given for this packet.")
 
-        cdef u_int32_t modified_payload_len = 0
-        cdef unsigned char *modified_payload = NULL
+        # cdef u_int32_t modified_payload_len = 0
+        # cdef unsigned char *modified_payload = NULL
 
         # rewriting payload data/len
-        if self._given_payload:
-            modified_payload_len = len(self._given_payload)
-            modified_payload = self._given_payload
+        # if self._given_payload:
+        #     modified_payload_len = len(self._given_payload)
+        #     modified_payload = self._given_payload
 
         if self._modified_mark:
             nfq_set_verdict2(
-                self._qh, self.id, verdict, self._modified_mark, modified_payload_len, modified_payload
+                self._qh, self.id, verdict, self._modified_mark, self.data_len, self.data
             )
 
         else:
             nfq_set_verdict(
-                self._qh, self.id, verdict, modified_payload_len, modified_payload
+                self._qh, self.id, verdict, self.data_len, self.data
             )
 
         self._verdict_is_set = True
@@ -161,6 +162,9 @@ cdef class CPacket:
         )
 
         return ip_header
+
+    def get_proto_header(self):
+        '''return layer4 of packet data as a tuple converted directly from C struct.'''
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.
