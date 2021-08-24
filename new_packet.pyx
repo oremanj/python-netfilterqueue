@@ -35,11 +35,11 @@ cdef class CPacket:
 
         self.protocol = 0
 
-    def __str__(self):
-        cdef iphdr *hdr = <iphdr*>self.payload
-        protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
-
-        return "%s packet, %s bytes" % (protocol, self.payload_len)
+    # def __str__(self):
+    #     cdef iphdr *hdr = <iphdr*>self.payload
+    #     protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
+    #
+    #     return "%s packet, %s bytes" % (protocol, self.payload_len)
 
     @staticmethod
     cdef nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
@@ -60,9 +60,9 @@ cdef class CPacket:
         self._nfa = nfa
         self._hdr = nfq_get_msg_packet_hdr(nfa)
 
-        self.id = ntohl(self._hdr.packet_id)
-        self.hw_protocol = ntohs(self._hdr.hw_protocol)
-        self.hook = self._hdr.hook
+        # self.id = ntohl(self._hdr.packet_id)
+        # self.hw_protocol = ntohs(self._hdr.hw_protocol)
+        # self.hook = self._hdr.hook
 
         self.payload_len = nfq_get_payload(self._nfa, & self.data)
         # TODO: figure this out. cant use no gil if its here.
