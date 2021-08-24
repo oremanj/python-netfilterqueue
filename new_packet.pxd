@@ -66,8 +66,8 @@ cdef class CPacket:
     cdef udphdr udp_header
     cdef icmphdr icmp_header
 
-    cdef u_int16_t __queue_num
-    cdef bint threaded
+    # cdef u_int16_t __queue_num
+    # cdef bint threaded
 
     cdef bint _verdict_is_set
     cdef u_int32_t _mark
@@ -80,4 +80,5 @@ cdef class CPacket:
 
     cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data) nogil
     cdef parse(self, nfq_q_handle * qh, nfq_data * nfa)
+    cdef _parse(self)
     cdef void verdict(self, u_int32_t verdict)

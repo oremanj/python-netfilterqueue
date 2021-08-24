@@ -66,6 +66,37 @@ cdef class CPacket:
 
         return 0
 
+    cdef _parse(self):
+        '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
+        the before_exit method will be called before returning, which can be used to create
+        subclass specific objects like namedtuples or application layer data.'''
+
+        cdef iphdr * ip_header = < iphdr * > self.data
+
+        cdef u_int8_t iphdr_len = iphdr.tos & 15 * 4
+
+        cdef tcphdr * tcp_header
+        cdef udphdr * udp_header
+        cdef icmphdr * icmp_header
+
+        if (iphdr.protocol == IPPROTO_TCP):
+
+            self.tcp_header = < tcphdr * > self.data[iphdr_len:]
+
+            return 0
+
+        if (iphdr.protocol == IPPROTO_UDP):
+            self.udp_header = < udphdr * > self.data[iphdr_len:]
+
+            return 0
+
+        if (iphdr.protocol == IPPROTO_ICMP):
+            self.icmp_header = < icmphdr * > self.data[iphdr_len:]
+
+            return 0
+
+        return 1
+
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict... function on packet.'''
 
@@ -91,37 +122,6 @@ cdef class CPacket:
             )
 
         self._verdict_is_set = True
-
-    cdef parse(self):
-        '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
-        the before_exit method will be called before returning, which can be used to create
-        subclass specific objects like namedtuples or application layer data.'''
-
-        cdef iphdr * ip_header = < iphdr * > self.payload
-
-        cdef u_int8_t iphdr_len = iphdr.tos & 15 * 4
-
-        cdef tcphdr * tcp_header
-        cdef udphdr * udp_header
-        cdef icmphdr * icmp_header
-
-        if (iphdr.protocol == IPPROTO_TCP):
-
-            self.tcp_header = < tcphdr * > self.payload[iphdr_len:]
-
-            return 0
-
-        if (iphdr.protocol == IPPROTO_UDP):
-            self.udp_header = < udphdr * > self.payload[iphdr_len:]
-
-            return 0
-
-        if (iphdr.protocol == IPPROTO_ICMP):
-            self.icmp_header = < icmphdr * > self.payload[iphdr_len:]
-
-            return 0
-
-        return 1
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.
