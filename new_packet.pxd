@@ -78,6 +78,6 @@ cdef class CPacket:
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
-    cdef netfilter(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data)
+    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data) nogil
+    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa)
     cdef void verdict(self, u_int32_t verdict)
-    cdef def parse(self) nogil

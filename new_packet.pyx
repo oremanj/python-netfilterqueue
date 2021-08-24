@@ -22,7 +22,7 @@ cdef class CPacket:
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
     @staticmethod
-    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data):
+    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data) nogil:
 
         # cdef NetfilterQueue nfqueue = < NetfilterQueue > data
         # cdef object user_callback = < object > nfqueue.user_callback
@@ -31,7 +31,7 @@ cdef class CPacket:
         packet.parse(qh, nfa)
 
     # NOTE: this will be callback target for nfqueue
-    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa) no gil:
+    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa):
         '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
