@@ -48,7 +48,8 @@ cdef class CPacket:
         # cdef object user_callback = <object > nfqueue.user_callback
 
         packet = CPacket()
-        packet.parse(qh, nfa)
+        with nogil:
+            packet.parse(qh, nfa)
 
         return 1
 
@@ -88,7 +89,7 @@ cdef class CPacket:
         # with gil:
             # callback(self)
 
-    cdef void _parse(self, unsigned char **data):
+    cdef void _parse(self, unsigned char **data) nogil:
         '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
