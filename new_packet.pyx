@@ -53,7 +53,7 @@ cdef class CPacket:
         return 1
 
     # NOTE: this will be callback target for nfqueue
-    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil:
+    cdef void parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil:
         '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
@@ -88,7 +88,7 @@ cdef class CPacket:
         # with gil:
             # callback(self)
 
-    cdef _parse(self, unsigned char **data):
+    cdef void _parse(self, unsigned char **data):
         '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
