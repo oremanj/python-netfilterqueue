@@ -27,8 +27,8 @@ cdef extern from "netinet/tcp.h":
         u_int32_t	th_seq
         u_int32_t	th_ack
 
-        u_int8_t th_x2:4
-        u_int8_t th_off:4
+        u_int8_t th_x2
+        u_int8_t th_off
 
         u_int8_t th_flags
 

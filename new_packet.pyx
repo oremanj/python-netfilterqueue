@@ -1,3 +1,23 @@
+#!/usr/bin/env python3
+
+import socket
+
+# Constants for module users
+cdef int COPY_NONE = 0
+cdef int COPY_META = 1
+cdef int COPY_PACKET = 2
+
+cdef u_int16_t DEFAULT_MAX_QUEUELEN = 1024
+cdef u_int16_t MaxPacketSize = 0xFFFF
+
+# buffer size - metadata size
+cdef u_int16_t MaxCopySize = 4096 - 80
+
+# Socket queue should hold max number of packets of copy size bytes
+# formula: DEF_MAX_QUEUELEN * (MaxCopySize+SockOverhead) / 2
+cdef u_int32_t SockRcvSize = 1024 * 4796 // 2
+
+
 cdef class CPacket:
     '''parent class designed to index/parse full tcp/ip packets (including ethernet). two alternate
     constructors are supplied to support nfqueue or raw sockets.
