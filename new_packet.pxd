@@ -175,9 +175,9 @@ cdef class CPacket:
     cdef nfqnl_msg_packet_hw *_hw
 
     # protocol headers
-    cdef tcphdr tcp_header
-    cdef udphdr udp_header
-    cdef icmphdr icmp_header
+    cdef tcphdr *tcp_header
+    cdef udphdr *udp_header
+    cdef icmphdr *icmp_header
 
     # cdef u_int16_t __queue_num
     # cdef bint threaded
