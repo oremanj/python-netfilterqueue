@@ -146,7 +146,7 @@ cdef class CPacket:
     def get_ip_header(self):
         '''return layer3 of packet data as a tuple converted directly from C struct.'''
 
-        cdef object ip_header = <PyTuple_Type>self.ip_header
+        cdef object ip_header = <PyTupleObject>self.ip_header
 
         return ip_header
 
