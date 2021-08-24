@@ -164,21 +164,6 @@ cdef class CPacket:
     #     return True
 
 
-cdef class IPHeader:
-
-        # u_int8_t tos
-        # u_int16_t tot_len
-        # u_int16_t id
-        # u_int16_t frag_off
-        # u_int8_t ttl
-        # u_int8_t protocol
-        # u_int16_t check
-        # u_int32_t saddr
-        # u_int32_t daddr
-
-        def __cinit__(self, data):
-
-
 cdef class NetfilterQueue:
     '''Handle a single numbered queue.'''
 
