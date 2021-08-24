@@ -60,7 +60,7 @@ cdef class CPacket:
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
 
-        cdef unsigned char *data
+        # cdef unsigned char *data
 
         self._qh = qh
         self._nfa = nfa
@@ -70,7 +70,7 @@ cdef class CPacket:
         # self.hw_protocol = ntohs(self._hdr.hw_protocol)
         # self.hook = self._hdr.hook
 
-        self.payload_len = nfq_get_payload(self._nfa, &data)
+        self.data_len = nfq_get_payload(self._nfa, &self.data)
         # TODO: figure this out. cant use no gil if its here.
         # if self.payload_len < 0:
         #     raise OSError("Failed to get payload of packet.")
@@ -81,19 +81,19 @@ cdef class CPacket:
         self._mark = nfq_get_nfmark(nfa)
 
         # splitting packet by tcp/ip layers
-        self._parse(&data)
+        self._parse()
 
         # if (self.continue_condition):
         #     self._before_exit()
 
-    cdef void _parse(self, unsigned char **data) nogil:
+    cdef void _parse(self) nogil:
         '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
 
-        cdef iphdr *ip_header = <iphdr*>data
+        cdef iphdr *ip_header = <iphdr*>self.data
 
-        cdef u_int8_t iphdr_len = ip_header.tos & 15 * 4
+        cdef u_int8_t iphdr_len = (ip_header.tos & 15) * 4
 
         cdef tcphdr *tcp_header
         cdef udphdr *udp_header
@@ -102,15 +102,15 @@ cdef class CPacket:
         self.ip_header = ip_header
         if (ip_header.protocol == IPPROTO_TCP):
 
-            self.tcp_header = <tcphdr*>data[iphdr_len]
+            self.tcp_header = <tcphdr*>self.data[iphdr_len]
 
         if (ip_header.protocol == IPPROTO_UDP):
 
-            self.udp_header = <udphdr*>data[iphdr_len]
+            self.udp_header = <udphdr*>self.data[iphdr_len]
 
         if (ip_header.protocol == IPPROTO_ICMP):
 
-            self.icmp_header = <icmphdr*>data[iphdr_len]
+            self.icmp_header = <icmphdr*>self.data[iphdr_len]
 
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict... function on packet.'''
@@ -138,8 +138,17 @@ cdef class CPacket:
 
         self._verdict_is_set = True
 
+    def get_raw_packet(self):
+        '''returns layer 3-7 of packet data.'''
+
+        return self.data[:self.data_len]
+
     def get_ip_header(self):
-        return self.ip_header
+        '''return layer3 of packet data as a tuple converted directly from C struct.'''
+
+        cdef object ip_header = <PyTuple_Type>self.ip_header
+
+        return ip_header
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.
@@ -153,6 +162,21 @@ cdef class CPacket:
     #     May be overridden.
     #     '''
     #     return True
+
+
+cdef class IPHeader:
+
+        # u_int8_t tos
+        # u_int16_t tot_len
+        # u_int16_t id
+        # u_int16_t frag_off
+        # u_int8_t ttl
+        # u_int8_t protocol
+        # u_int16_t check
+        # u_int32_t saddr
+        # u_int32_t daddr
+
+        def __cinit__(self, data):
 
 
 cdef class NetfilterQueue:

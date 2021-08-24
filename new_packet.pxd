@@ -64,6 +64,8 @@ cdef extern from "Python.h":
     object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
+    ctypedef object PyTuple_Type
+
 cdef extern from "sys/time.h":
     ctypedef long time_t
     struct timeval:
@@ -193,7 +195,7 @@ cdef class CPacket:
     cdef u_int32_t _mark
 
     # Packet details:
-    cdef Py_ssize_t payload_len
+    cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
