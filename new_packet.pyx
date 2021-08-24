@@ -16,22 +16,22 @@ cdef class CPacket:
         self.protocol = 0
 
     def __str__(self):
-        cdef iphdr * hdr = < iphdr * > self.payload
+        cdef iphdr *hdr = <iphdr*>self.payload
         protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
 
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
     @staticmethod
-    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data) nogil:
+    cdef nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) nogil:
 
-        # cdef NetfilterQueue nfqueue = < NetfilterQueue > data
-        # cdef object user_callback = < object > nfqueue.user_callback
+        # cdef NetfilterQueue nfqueue = <NetfilterQueue > data
+        # cdef object user_callback = <object > nfqueue.user_callback
 
         packet = CPacket()
         packet.parse(qh, nfa)
 
     # NOTE: this will be callback target for nfqueue
-    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa):
+    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa):
         '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
@@ -71,27 +71,27 @@ cdef class CPacket:
         the before_exit method will be called before returning, which can be used to create
         subclass specific objects like namedtuples or application layer data.'''
 
-        cdef iphdr * ip_header = < iphdr * > self.data
+        cdef iphdr *ip_header = <iphdr*>self.data
 
         cdef u_int8_t iphdr_len = iphdr.tos & 15 * 4
 
-        cdef tcphdr * tcp_header
-        cdef udphdr * udp_header
-        cdef icmphdr * icmp_header
+        cdef tcphdr *tcp_header
+        cdef udphdr *udp_header
+        cdef icmphdr *icmp_header
 
         if (iphdr.protocol == IPPROTO_TCP):
 
-            self.tcp_header = < tcphdr * > self.data[iphdr_len:]
+            self.tcp_header = <tcphdr*>self.data[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_UDP):
-            self.udp_header = < udphdr * > self.data[iphdr_len:]
+            self.udp_header = <udphdr*>self.data[iphdr_len:]
 
             return 0
 
         if (iphdr.protocol == IPPROTO_ICMP):
-            self.icmp_header = < icmphdr * > self.data[iphdr_len:]
+            self.icmp_header = <icmphdr*>self.data[iphdr_len:]
 
             return 0
 
@@ -104,7 +104,7 @@ cdef class CPacket:
             raise RuntimeWarning("Verdict already given for this packet.")
 
         cdef u_int32_t modified_payload_len = 0
-        cdef unsigned char * modified_payload = NULL
+        cdef unsigned char *modified_payload = NULL
 
         # rewriting payload data/len
         if self._given_payload:
@@ -168,7 +168,7 @@ cdef class NetfilterQueue:
         cdef unsigned int newsiz
 
         self.user_callback = user_callback
-        self.qh = nfq_create_queue(self.h, queue_num, < nfq_callback * > global_callback, < void * > self)
+        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>global_callback, <void*>self)
         if self.qh == NULL:
             raise OSError(f'Failed to create queue {queue_num}')
 
