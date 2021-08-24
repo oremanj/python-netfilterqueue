@@ -6,6 +6,12 @@ cdef extern from "sys/types.h":
 cdef extern from "<errno.h>":
     int errno
 
+# dummy defines from asm-generic/errno.h:
+cdef enum:
+    EAGAIN = 11           # Try again
+    EWOULDBLOCK = EAGAIN
+    ENOBUFS = 105         # No buffer space available
+
 # cython define
 cdef extern from "netinet/ip.h":
     struct iphdr:
@@ -193,8 +199,8 @@ cdef class CPacket:
     cdef u_int8_t hw_addr[8]
 
     cdef int nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data)
-    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
-    cdef _parse(self, unsigned char **data)
+    cdef void parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
+    cdef void _parse(self, unsigned char **data)
     cdef void verdict(self, u_int32_t verdict)
 
 cdef class NetfilterQueue:
