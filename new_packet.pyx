@@ -44,12 +44,16 @@ cdef class CPacket:
     @staticmethod
     cdef int nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
 
-        # cdef NetfilterQueue nfqueue = <NetfilterQueue > data
-        # cdef object user_callback = <object > nfqueue.user_callback
+        cdef NetfilterQueue nfqueue = <NetfilterQueue>data
+        cdef object user_callback = <object>nfqueue.user_callback
 
         packet = CPacket()
         with nogil:
             packet.parse(qh, nfa)
+
+        # TODO: send to module callback here
+        # with gil:
+        user_callback(packet)
 
         return 1
 
@@ -85,10 +89,6 @@ cdef class CPacket:
         # if (self.continue_condition):
         #     self._before_exit()
 
-        # TODO: send to module callback here
-        # with gil:
-            # callback(self)
-
     cdef void _parse(self, unsigned char **data) nogil:
         '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
         the before_exit method will be called before returning, which can be used to create
@@ -105,15 +105,15 @@ cdef class CPacket:
         self.ip_header = ip_header
         if (ip_header.protocol == IPPROTO_TCP):
 
-            self.tcp_header = <tcphdr*>data[iphdr_len:]
+            self.tcp_header = <tcphdr*>data[iphdr_len]
 
         if (ip_header.protocol == IPPROTO_UDP):
 
-            self.udp_header = <udphdr*>data[iphdr_len:]
+            self.udp_header = <udphdr*>data[iphdr_len]
 
         if (ip_header.protocol == IPPROTO_ICMP):
 
-            self.icmp_header = <icmphdr*>data[iphdr_len:]
+            self.icmp_header = <icmphdr*>data[iphdr_len]
 
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict... function on packet.'''
@@ -179,12 +179,13 @@ cdef class NetfilterQueue:
         # processes using this libnetfilter_queue on this protocol family!
         nfq_close(self.h)
 
-    def bind(self, int queue_num, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
+    def bind(self, int queue_num, object user_callback, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
             u_int8_t mode=NFQNL_COPY_PACKET, u_int16_t range=MaxPacketSize, u_int32_t sock_len=SockRcvSize):
         '''Create and bind to a new queue.'''
 
         cdef unsigned int newsiz
 
+        self.user_callback = user_callback
         self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>CPacket.nf_callback, <void*>self)
         if self.qh == NULL:
             raise OSError(f'Failed to create queue {queue_num}')
