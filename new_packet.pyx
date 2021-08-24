@@ -55,7 +55,7 @@ cdef class CPacket:
         self._mark = nfq_get_nfmark(nfa)
 
         # splitting packet by tcp/ip layers
-        cdef int error = parse()
+        cdef int error = self.parse()
 
         # if (self.continue_condition):
         #     self._before_exit()
