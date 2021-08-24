@@ -195,7 +195,7 @@ cdef class NetfilterQueue:
         cdef unsigned int newsiz
 
         self.user_callback = user_callback
-        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>CPacket.nf_callback, <void*>self)
+        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>nf_callback, <void*>self)
         if self.qh == NULL:
             raise OSError(f'Failed to create queue {queue_num}')
 
