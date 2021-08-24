@@ -195,3 +195,10 @@ cdef class CPacket:
     cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef _parse(self, unsigned char **data)
     cdef void verdict(self, u_int32_t verdict)
+
+cdef class NetfilterQueue:
+    cdef object user_callback # User callback
+    cdef nfq_handle *h # Handle to NFQueue library
+    cdef nfq_q_handle *qh # A handle to the queue
+    cdef u_int16_t af # Address family
+    cdef packet_copy_size # Amount of packet metadata + data copied to buffer
