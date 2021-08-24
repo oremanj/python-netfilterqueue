@@ -178,14 +178,13 @@ cdef class NetfilterQueue:
         # processes using this libnetfilter_queue on this protocol family!
         nfq_close(self.h)
 
-    def bind(self, int queue_num, object user_callback, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
+    def bind(self, int queue_num, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
             u_int8_t mode=NFQNL_COPY_PACKET, u_int16_t range=MaxPacketSize, u_int32_t sock_len=SockRcvSize):
         '''Create and bind to a new queue.'''
 
         cdef unsigned int newsiz
 
-        self.user_callback = user_callback
-        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>global_callback, <void*>self)
+        self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>CPacket.nf_callback, <void*>self)
         if self.qh == NULL:
             raise OSError(f'Failed to create queue {queue_num}')
 
