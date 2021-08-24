@@ -42,7 +42,7 @@ cdef class CPacket:
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
     @staticmethod
-    cdef nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) nogil:
+    cdef nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
 
         # cdef NetfilterQueue nfqueue = <NetfilterQueue > data
         # cdef object user_callback = <object > nfqueue.user_callback
@@ -51,7 +51,7 @@ cdef class CPacket:
         packet.parse(qh, nfa)
 
     # NOTE: this will be callback target for nfqueue
-    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa):
+    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil:
         '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
@@ -75,7 +75,7 @@ cdef class CPacket:
         self._mark = nfq_get_nfmark(nfa)
 
         # splitting packet by tcp/ip layers
-        cdef int error = self.parse()
+        cdef int error = self._parse()
 
         # if (self.continue_condition):
         #     self._before_exit()
@@ -93,29 +93,21 @@ cdef class CPacket:
 
         cdef iphdr *ip_header = <iphdr*>self.data
 
-        cdef u_int8_t iphdr_len = iphdr.tos & 15 * 4
+        cdef u_int8_t iphdr_len = ip_header.tos & 15 * 4
 
         cdef tcphdr *tcp_header
         cdef udphdr *udp_header
         cdef icmphdr *icmp_header
 
-        if (iphdr.protocol == IPPROTO_TCP):
+        if (ip_header.protocol == IPPROTO_TCP):
 
             self.tcp_header = <tcphdr*>self.data[iphdr_len:]
 
-            return 0
-
-        if (iphdr.protocol == IPPROTO_UDP):
+        if (ip_header.protocol == IPPROTO_UDP):
             self.udp_header = <udphdr*>self.data[iphdr_len:]
 
-            return 0
-
-        if (iphdr.protocol == IPPROTO_ICMP):
+        if (ip_header.protocol == IPPROTO_ICMP):
             self.icmp_header = <icmphdr*>self.data[iphdr_len:]
-
-            return 0
-
-        return 1
 
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict... function on packet.'''

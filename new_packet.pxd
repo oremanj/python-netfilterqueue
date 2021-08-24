@@ -187,11 +187,11 @@ cdef class CPacket:
 
     # Packet details:
     cdef Py_ssize_t payload_len
-    cdef readonly unsigned char *payload
+    cdef readonly unsigned char *data
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
-    cdef nf_callback(self, nfq_q_handle * qh, nfgenmsg * nfmsg, nfq_data * nfa, void * data) nogil
-    cdef parse(self, nfq_q_handle * qh, nfq_data * nfa)
+    cdef nf_callback(self, nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data)
+    cdef parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef _parse(self)
     cdef void verdict(self, u_int32_t verdict)
