@@ -60,13 +60,11 @@ cdef class CPacket:
 
         '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
 
-        # cdef unsigned char *data
-
         self._qh = qh
         self._nfa = nfa
 
-        nfqnl_msg_packet_hdr *hdr = nfq_get_msg_packet_hdr(nfa)
-        self.id = ntohl(hdr.packet_id)
+        self._hdr = nfq_get_msg_packet_hdr(nfa)
+        self.id = ntohl(self._hdr.packet_id)
         # NOTE: these are not needed at this moment.
         # self.hw_protocol = ntohs(hdr.hw_protocol)
         # self.hook = hdr.hook

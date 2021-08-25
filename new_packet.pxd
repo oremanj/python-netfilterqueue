@@ -173,7 +173,7 @@ cdef enum:
 cdef class CPacket:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
-    # cdef nfqnl_msg_packet_hdr *_hdr
+    cdef nfqnl_msg_packet_hdr *_hdr
     # cdef nfqnl_msg_packet_hw *_hw
 
     cdef u_int32_t id
@@ -194,7 +194,7 @@ cdef class CPacket:
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
-    cdef void parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
+    cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
     cdef void verdict(self, u_int32_t verdict)
 
