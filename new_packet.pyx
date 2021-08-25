@@ -22,9 +22,11 @@ cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *dat
     cdef NetfilterQueue nfqueue = <NetfilterQueue>data
     cdef object user_callback = <object>nfqueue.user_callback
 
+    cdef u_int32_t mark
+
     packet = CPacket()
     with nogil:
-        cdef u_int32_t mark = packet.parse(qh, nfa)
+        mark = packet.parse(qh, nfa)
 
     user_callback(packet, mark)
 
