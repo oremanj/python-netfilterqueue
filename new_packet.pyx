@@ -188,16 +188,16 @@ cdef class CPacket:
         elif (ip_header.protocol == IPPROTO_UDP):
 
             proto_header = (
-                ntohs(proto_header.uh_sport),
-                ntohs(proto_header.uh_dport),
-                ntohs(proto_header.uh_ulen),
-                ntohs(proto_header.uh_sum),
+                ntohs(self.udp_header.uh_sport),
+                ntohs(self.udp_header.uh_dport),
+                ntohs(self.udp_header.uh_ulen),
+                ntohs(self.udp_header.uh_sum),
             )
 
         elif (ip_header.protocol == IPPROTO_ICMP):
 
             proto_header = (
-                self.ip_header.type,
+                self.icmp_header.type,
             )
 
         return proto_header
