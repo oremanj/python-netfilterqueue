@@ -100,25 +100,22 @@ cdef class CPacket:
 
         cdef u_int8_t tcphdr_len
         cdef u_int8_t udphdr_len
-        cdef u_int8_t cmbhdr_len
 
         if (self.ip_header.protocol == IPPROTO_TCP):
 
             self.tcp_header = <tcphdr*>self.data[iphdr_len]
 
             tcphdr_len = (self.tcp_header.th_off & 15) * 4
-            cmbhdr_len = iphdr_len + tcphdr_len
 
-            self.payload = self.data[cmbhdr_len:]
+            self.cmbhdr_len = iphdr_len + tcphdr_len
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
 
             self.udp_header = <udphdr*>self.data[iphdr_len]
 
             udphdr_len = 8
-            cmbhdr_len = iphdr_len + udphdr_len
 
-            self.payload = self.data[cmbhdr_len:]
+            self.cmbhdr_len = iphdr_len + udphdr_len
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
@@ -172,7 +169,7 @@ cdef class CPacket:
 
         cdef tuple proto_header
 
-        if (ip_header.protocol == IPPROTO_TCP):
+        if (self.ip_header.protocol == IPPROTO_TCP):
 
             proto_header = (
                 ntohs(self.tcp_header.th_sport),
@@ -188,7 +185,7 @@ cdef class CPacket:
                 self.tcp_header.th_urp
             )
 
-        elif (ip_header.protocol == IPPROTO_UDP):
+        elif (self.ip_header.protocol == IPPROTO_UDP):
 
             proto_header = (
                 ntohs(self.udp_header.uh_sport),
@@ -197,7 +194,7 @@ cdef class CPacket:
                 ntohs(self.udp_header.uh_sum),
             )
 
-        elif (ip_header.protocol == IPPROTO_ICMP):
+        elif (self.ip_header.protocol == IPPROTO_ICMP):
 
             proto_header = (
                 self.icmp_header.type,
@@ -208,11 +205,11 @@ cdef class CPacket:
     def get_payload(self):
         '''Return payload as Python bytes.'''
 
-        # cdef object payload
-        #
-        # payload = self.payload
+        cdef object payload
 
-        return self.payload
+        payload = self.data[self.cmbhdr_len:self.data_len]
+
+        return payload
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.

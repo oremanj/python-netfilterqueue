@@ -184,13 +184,14 @@ cdef class CPacket:
     cdef udphdr *udp_header
     cdef icmphdr *icmp_header
 
+    cdef u_int8_t cmbhdr_len
+
     cdef bint _verdict_is_set
     cdef u_int32_t _mark
 
     # Packet details:
     cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
-    cdef unsigned char *payload
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
