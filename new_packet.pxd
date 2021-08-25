@@ -208,7 +208,6 @@ cdef class CPacket:
     cdef u_int8_t get_inint(self, bint name=?)
     cdef u_int8_t get_outint(self, bint name=?)
     cpdef update_mark(self, u_int32_t mark)
-    cpdef set_payload(self, bytes payload)
     cpdef accept(self)
     cpdef drop(self)
     cpdef forward(self, u_int16_t queue_num)
