@@ -34,33 +34,13 @@ cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *dat
 
 
 cdef class CPacket:
-    '''parent class designed to index/parse full tcp/ip packets (including ethernet). two alternate
-    constructors are supplied to support nfqueue or raw sockets.
-    raw socket:
-        packet = RawPacket.interface(data, address, socket)
-    nfqueue:
-        packet = RawPacket.netfilter(nfqueue)
-    the before_exit method can be overridden to extend the parsing functionality, for example to group
-    objects in namedtuples or to index application data.
-    '''
 
     def __cinit__(self):
         self._verdict_is_set = False
         self._mark = 0
 
-        # self.payload = 0
-
-    # def __str__(self):
-    #     cdef iphdr *hdr = <iphdr*>self.payload
-    #     protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
-    #
-    #     return "%s packet, %s bytes" % (protocol, self.payload_len)
-
     # NOTE: this will be callback target for nfqueue
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil:
-        '''Alternate constructor. Used to start listener/proxy instances using nfqueue bindings.'''
-
-        '''Assign a packet from NFQ to this object. Parse the header and load local values.'''
 
         self._qh = qh
         self._nfa = nfa
@@ -90,9 +70,6 @@ cdef class CPacket:
         #     self._before_exit()
 
     cdef void _parse(self) nogil:
-        '''Index tcp/ip packet layers 3 & 4 for use as instance objects.
-        the before_exit method will be called before returning, which can be used to create
-        subclass specific objects like namedtuples or application layer data.'''
 
         self.ip_header = <iphdr*>self.data
 
@@ -101,9 +78,11 @@ cdef class CPacket:
         cdef u_int8_t tcphdr_len
         cdef u_int8_t udphdr_len
 
+        cdef void *data = &self.data[iphdr_len]
+
         if (self.ip_header.protocol == IPPROTO_TCP):
 
-            self.tcp_header = <tcphdr*>self.data[iphdr_len]
+            self.tcp_header = <tcphdr*>data
 
             tcphdr_len = (self.tcp_header.th_off & 15) * 4
 
@@ -111,7 +90,7 @@ cdef class CPacket:
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
 
-            self.udp_header = <udphdr*>self.data[iphdr_len]
+            self.udp_header = <udphdr*>data
 
             udphdr_len = 8
 
@@ -119,10 +98,10 @@ cdef class CPacket:
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
-            self.icmp_header = <icmphdr*>self.data[iphdr_len]
+            self.icmp_header = <icmphdr*>data
 
     cdef void verdict(self, u_int32_t verdict):
-        '''Call appropriate set_verdict... function on packet.'''
+        '''Call appropriate set_verdict function on packet.'''
 
         # TODO: figure out what to do about this. maybe just printf instead?
         if self._verdict_is_set:
@@ -140,8 +119,119 @@ cdef class CPacket:
 
         self._verdict_is_set = True
 
+    cdef double get_timestamp(self):
+
+        return self.timestamp.tv_sec + (self.timestamp.tv_usec / 1000000.0)
+
+    cdef u_int8_t get_inint(self, bint name=False):
+        '''Returns index of inbound interface of packet. If the packet sourced from localhost or the input
+        interface is not known, 0 will be returned.
+        '''
+        # if name=True, socket.if_indextoname() will be returned.
+        # '''
+
+        # cdef object in_interface_name
+
+        cdef u_int8_t in_interface
+
+        in_interface = nfq_get_indev(self._nfa)
+
+        return in_interface
+
+        # try:
+        #     in_interface_name = socket.if_indextoname(in_interface)
+        # except OSError:
+        #     in_interface_name = 'unknown'
+
+        # return in_interface_name
+
+    # NOTE: keeping these funtions separate instead of making an argument option to adjust which interface to return.
+    # this will keep it explicit for which interface is returning to minimize chance of confusion/bugs.
+    cdef u_int8_t get_outint(self, bint name=False):
+        '''Returns index of outbound interface of packet. If the packet is destined for localhost or the output
+        interface is not yet known, 0 will be returned.
+        '''
+        # if name=True, socket.if_indextoname() will be returned.
+        # '''
+
+        # cdef object out_interface_name
+
+        cdef u_int8_t out_interface
+
+        out_interface = nfq_get_outdev(self._nfa)
+
+        return out_interface
+
+        # try:
+        #     out_interface_name = socket.if_indextoname(out_interface)
+        # except OSError:
+        #     out_interface_name = 'unknown'
+
+        # return out_interface_name
+
+    cpdef update_mark(self, u_int32_t mark):
+        '''Modifies the running mark of the packet.'''
+
+        self._mark = mark
+
+    cpdef accept(self):
+        '''Accept the packet.'''
+
+        self.verdict(NF_ACCEPT)
+
+    cpdef drop(self):
+        '''Drop the packet.'''
+
+        self.verdict(NF_DROP)
+
+    cpdef forward(self, u_int16_t queue_num):
+        '''Send the packet to a different queue.'''
+
+        cdef u_int32_t forward_to_queue
+
+        forward_to_queue = queue_num << 16 | NF_QUEUE
+
+        self.verdict(forward_to_queue)
+
+    cpdef repeat(self):
+        '''Repeat the packet.'''
+
+        self.verdict(NF_REPEAT)
+
+    def get_hw(self):
+        '''Return hardware information of the packet.
+
+            hw_info = (
+                self.get_inint(), self.get_outint(), mac_addr, self.get_timestamp()
+            )
+        '''
+
+        cdef object mac_addr
+        cdef tuple hw_info
+
+        self._hw = nfq_get_packet_hw(self._nfa)
+        if self._hw == NULL:
+            # nfq_get_packet_hw doesn't work on OUTPUT and PREROUTING chains
+            # NOTE: making this a quick fail scenario since this would likely cause problems later in the packet
+            # parsing process and forcing error handling will ensure it is dealt with [properly].
+            raise OSError('MAC address not available in OUTPUT and PREROUTING chains')
+
+        # NOTE: can this not just be directly referenced below?
+        # self.hw_addr = self._hw.hw_addr
+
+        mac_addr = PyBytes_FromStringAndSize(<char*>self._hw.hw_addr, 8)
+
+        hw_info = (
+            self.get_inint(),
+            self.get_outint(),
+            mac_addr,
+            self.get_timestamp()
+        )
+
+        return hw_info
+
     def get_raw_packet(self):
-        '''returns layer 3-7 of packet data.'''
+        '''Return layer 3-7 of packet data.'''
 
         return self.data[:self.data_len]
 
@@ -207,26 +297,13 @@ cdef class CPacket:
         return proto_header
 
     def get_payload(self):
-        '''Return payload as Python bytes.'''
+        '''Return payload (>layer4) as Python bytes.'''
 
         cdef object payload
 
         payload = self.data[self.cmbhdr_len:self.data_len]
 
         return payload
-
-    # def _before_exit(self):
-    #     '''executes before returning from parse call.
-    #     May be overridden.
-    #     '''
-    #     pass
-    #
-    # @property
-    # def continue_condition(self):
-    #     '''controls whether the _before_exit method gets called. must return a boolean.
-    #     May be overridden.
-    #     '''
-    #     return True
 
 
 cdef class NetfilterQueue:

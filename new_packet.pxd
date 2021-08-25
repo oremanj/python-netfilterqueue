@@ -180,7 +180,7 @@ cdef class CPacket:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
-    # cdef nfqnl_msg_packet_hw *_hw
+    cdef nfqnl_msg_packet_hw *_hw
 
     cdef u_int32_t id
 
@@ -204,6 +204,9 @@ cdef class CPacket:
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
     cdef void verdict(self, u_int32_t verdict)
+    cdef double get_timestamp(self)
+    cdef u_int8_t get_inint(self, bint name=False)
+    cdef u_int8_t get_outint(self, bint name=False)
 
 cdef class NetfilterQueue:
     cdef object user_callback # User callback
