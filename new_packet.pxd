@@ -26,29 +26,25 @@ cdef extern from "netinet/ip.h":
         u_int32_t daddr
 
 # cython define
-cdef extern from "netinet/tcp.h":
-    struct tcphdr:
-        u_int16_t	th_sport
-        u_int16_t	th_dport
-        u_int32_t	th_seq
-        u_int32_t	th_ack
+struct tcphdr:
+    u_int16_t th_sport
+    u_int16_t th_dport
+    u_int32_t th_seq
+    u_int32_t th_ack
 
-        u_int8_t th_x2
-        u_int8_t th_off
+    u_int8_t th_off
 
-        u_int8_t th_flags
-
-        u_int16_t th_win
-        u_int16_t th_sum
-        u_int16_t th_urp
+    u_int8_t th_flags
+    u_int16_t th_win
+    u_int16_t th_sum
+    u_int16_t th_urp
 
 # cython define
-cdef extern from "netinet/udp.h":
-    struct udphdr:
-        u_int16_t uh_sport
-        u_int16_t uh_dport
-        u_int16_t uh_ulen
-        u_int16_t uh_sum
+struct udphdr:
+    u_int16_t uh_sport
+    u_int16_t uh_dport
+    u_int16_t uh_ulen
+    u_int16_t uh_sum
 
 cdef struct icmphdr:
     u_int8_t type
@@ -182,7 +178,6 @@ cdef class CPacket:
 
     cdef u_int32_t id
 
-
     # protocol headers
     cdef iphdr *ip_header
     cdef tcphdr *tcp_header
@@ -195,6 +190,7 @@ cdef class CPacket:
     # Packet details:
     cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
+    cdef unsigned char *payload
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
