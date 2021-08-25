@@ -155,10 +155,10 @@ cdef class CPacket:
             self.ip_header.tos,
             ntohs(self.ip_header.tot_len),
             ntohs(self.ip_header.id),
-            self.ip_header.frag_off,
+            ntohs(self.ip_header.frag_off),
             self.ip_header.ttl,
-            ntohs(self.ip_header.protocol),
-            self.ip_header.check,
+            self.ip_header.protocol,
+            ntohs(self.ip_header.check),
             ntohl(self.ip_header.saddr),
             ntohl(self.ip_header.daddr)
         )
