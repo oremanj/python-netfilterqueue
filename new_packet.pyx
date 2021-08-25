@@ -77,32 +77,46 @@ cdef class CPacket:
 
         self.ip_header = <iphdr*>self.data
 
-        cdef u_int8_t iphdr_len = (self.ip_header.tos & 15) * 4
+        cdef u_int8_t hdr_shift = 4
+        cdef u_int8_t hdr_multiplier = 4
+        cdef u_int8_t hdr_xand = 15
+        cdef u_int8_t iphdr_len
+
+        iphdr_len = self.ip_header.ver_ihl & hdr_xand
+        iphdr_len = iphdr_len * hdr_multiplier
+
+        printf('ip header length=%f\n', iphdr_len)
 
         cdef u_int8_t tcphdr_len
-        cdef u_int8_t udphdr_len
+        cdef u_int8_t udphdr_len  = 8
+        cdef u_int8_t icmphdr_len = 4
 
         cdef void *data = &self.data[iphdr_len]
+        cdef ptrdiff_t hdrptr = <u_int32_t*>data - <u_int32_t*>self.data
 
         if (self.ip_header.protocol == IPPROTO_TCP):
 
-            self.tcp_header = <tcphdr*>data
+            self.tcp_header = <tcphdr*>&hdrptr
 
-            tcphdr_len = (self.tcp_header.th_off & 15) * 4
+            tcphdr_len = self.tcp_header.th_off >> hdr_shift
+            tcphdr_len = tcphdr_len & hdr_xand
+            tcphdr_len = tcphdr_len * hdr_multiplier
+
+            printf('TCP HEADER LEN=%f\n', tcphdr_len)
 
             self.cmbhdr_len = iphdr_len + tcphdr_len
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
 
-            self.udp_header = <udphdr*>data
-
-            udphdr_len = 8
+            self.udp_header = <udphdr*>&hdrptr
 
             self.cmbhdr_len = iphdr_len + udphdr_len
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
-            self.icmp_header = <icmphdr*>data
+            self.icmp_header = <icmphdr*>&hdrptr
+
+            self.cmbhdr_len = iphdr_len + icmphdr_len
 
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict function on packet.'''
@@ -245,7 +259,7 @@ cdef class CPacket:
         cdef tuple ip_header
 
         ip_header = (
-            self.ip_header.ihl_ver,
+            self.ip_header.ver_ihl,
             self.ip_header.tos,
             ntohs(self.ip_header.tot_len),
             ntohs(self.ip_header.id),
@@ -305,7 +319,7 @@ cdef class CPacket:
 
         cdef object payload
 
-        payload = self.data[self.cmbhdr_len:self.data_len]
+        payload = self.data[<Py_ssize_t>self.cmbhdr_len:self.data_len]
 
         return payload
 

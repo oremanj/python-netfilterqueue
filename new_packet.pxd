@@ -14,7 +14,7 @@ cdef enum:
 
 # cython define
 cdef struct iphdr:
-        u_int8_t  ihl_ver
+        u_int8_t  ver_ihl
         u_int8_t  tos
         u_int16_t tot_len
         u_int16_t id
@@ -32,7 +32,7 @@ cdef struct tcphdr:
     u_int32_t th_seq
     u_int32_t th_ack
 
-    u_int8_t th_off
+    u_int8_t  th_off
 
     u_int8_t  th_flags
     u_int16_t th_win
