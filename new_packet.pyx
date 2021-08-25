@@ -26,9 +26,6 @@ def set_user_callback(ref):
 
 cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) with gil:
 
-    cdef NetfilterQueue nfqueue = <NetfilterQueue>data
-    cdef object user_callback = <object>nfqueue.user_callback
-
     cdef u_int32_t mark
 
     packet = CPacket()
