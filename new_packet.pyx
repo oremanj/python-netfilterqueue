@@ -109,7 +109,7 @@ cdef class CPacket:
             tcphdr_len = (self.tcp_header.th_off & 15) * 4
             cmbhdr_len = iphdr_len + tcphdr_len
 
-            self.payload = self.data[cmbhdr_len:self.data_len]
+            self.payload = self.data[cmbhdr_len:]
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
 
@@ -118,7 +118,7 @@ cdef class CPacket:
             udphdr_len = 8
             cmbhdr_len = iphdr_len + udphdr_len
 
-            self.payload = self.data[cmbhdr_len:self.data_len]
+            self.payload = self.data[cmbhdr_len:]
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
