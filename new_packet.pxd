@@ -26,7 +26,7 @@ cdef extern from "netinet/ip.h":
         u_int32_t daddr
 
 # cython define
-struct tcphdr:
+cdef struct tcphdr:
     u_int16_t th_sport
     u_int16_t th_dport
     u_int32_t th_seq
@@ -40,7 +40,7 @@ struct tcphdr:
     u_int16_t th_urp
 
 # cython define
-struct udphdr:
+cdef struct udphdr:
     u_int16_t uh_sport
     u_int16_t uh_dport
     u_int16_t uh_ulen
