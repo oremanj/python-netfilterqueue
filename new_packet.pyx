@@ -81,10 +81,10 @@ cdef class CPacket:
 
         self._mark = nfq_get_nfmark(nfa)
 
-        return self._mark
-
         # splitting packet by tcp/ip layers
         self._parse()
+
+        return self._mark
 
         # if (self.continue_condition):
         #     self._before_exit()
