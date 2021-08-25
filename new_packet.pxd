@@ -13,14 +13,14 @@ cdef enum:
     ENOBUFS = 105         # No buffer space available
 
 # cython define
-cdef extern from "netinet/ip.h":
-    struct iphdr:
-        u_int8_t tos
+cdef struct iphdr:
+        u_int8_t  ihl_ver
+        u_int8_t  tos
         u_int16_t tot_len
         u_int16_t id
         u_int16_t frag_off
-        u_int8_t ttl
-        u_int8_t protocol
+        u_int8_t  ttl
+        u_int8_t  protocol
         u_int16_t check
         u_int32_t saddr
         u_int32_t daddr
@@ -34,7 +34,7 @@ cdef struct tcphdr:
 
     u_int8_t th_off
 
-    u_int8_t th_flags
+    u_int8_t  th_flags
     u_int16_t th_win
     u_int16_t th_sum
     u_int16_t th_urp
@@ -65,6 +65,7 @@ cdef extern from "sys/time.h":
     struct timeval:
         time_t tv_sec
         time_t tv_usec
+
     struct timezone:
         pass
 
@@ -83,6 +84,7 @@ cdef extern from "libnfnetlink/linux_nfnetlink.h":
 cdef extern from "libnfnetlink/libnfnetlink.h":
     struct nfnl_handle:
         pass
+
     unsigned int nfnl_rcvbufsiz(nfnl_handle *h, unsigned int size)
 
 cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
@@ -90,6 +92,7 @@ cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
         NFQNL_COPY_NONE
         NFQNL_COPY_META
         NFQNL_COPY_PACKET
+
     struct nfqnl_msg_packet_hdr:
         u_int32_t packet_id
         u_int16_t hw_protocol
@@ -98,10 +101,13 @@ cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
 cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     struct nfq_handle:
         pass
+
     struct nfq_q_handle:
         pass
+
     struct nfq_data:
         pass
+
     struct nfqnl_msg_packet_hw:
         u_int8_t hw_addr[8]
 

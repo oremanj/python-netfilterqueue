@@ -151,6 +151,7 @@ cdef class CPacket:
         cdef tuple ip_header
 
         ip_header = (
+            self.ip_header.ihl_ver,
             self.ip_header.tos,
             ntohs(self.ip_header.tot_len),
             ntohs(self.ip_header.id),
@@ -199,6 +200,9 @@ cdef class CPacket:
             proto_header = (
                 self.icmp_header.type,
             )
+
+        else:
+            proto_header = ()
 
         return proto_header
 
