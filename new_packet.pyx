@@ -229,7 +229,7 @@ cdef class CPacket:
             self.get_inint(),
             self.get_outint(),
             mac_addr,
-            self.get_timestamp()
+            self.get_timestamp(),
         )
 
         return hw_info
@@ -254,7 +254,7 @@ cdef class CPacket:
             self.ip_header.protocol,
             ntohs(self.ip_header.check),
             ntohl(self.ip_header.saddr),
-            ntohl(self.ip_header.daddr)
+            ntohl(self.ip_header.daddr),
         )
 
         return ip_header
@@ -277,7 +277,7 @@ cdef class CPacket:
                 self.tcp_header.th_flags,
                 ntohs(self.tcp_header.th_win),
                 ntohs(self.tcp_header.th_sum),
-                ntohs(self.tcp_header.th_urp)
+                ntohs(self.tcp_header.th_urp),
             )
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
@@ -286,13 +286,13 @@ cdef class CPacket:
                 ntohs(self.udp_header.uh_sport),
                 ntohs(self.udp_header.uh_dport),
                 ntohs(self.udp_header.uh_ulen),
-                ntohs(self.udp_header.uh_sum)
+                ntohs(self.udp_header.uh_sum),
             )
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
             proto_header = (
-                self.icmp_header.type
+                self.icmp_header.type,
             )
 
         else:
