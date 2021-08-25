@@ -48,7 +48,7 @@ cdef class CPacket:
         self._verdict_is_set = False
         self._mark = 0
 
-        self.payload = 0
+        # self.payload = 0
 
     # def __str__(self):
     #     cdef iphdr *hdr = <iphdr*>self.payload
@@ -109,7 +109,7 @@ cdef class CPacket:
 
             self.payload = self.data[iphdr_len+tcphdr_len:self.data_len]
 
-        if (ip_header.protocol == IPPROTO_UDP):
+        elif (ip_header.protocol == IPPROTO_UDP):
 
             self.udp_header = <udphdr*>self.data[iphdr_len]
 
@@ -117,7 +117,7 @@ cdef class CPacket:
 
             self.payload = self.data[iphdr_len + udphdr_len:self.data_len]
 
-        if (ip_header.protocol == IPPROTO_ICMP):
+        elif (ip_header.protocol == IPPROTO_ICMP):
 
             self.icmp_header = <icmphdr*>self.data[iphdr_len]
 
@@ -198,6 +198,11 @@ cdef class CPacket:
 
             proto_header = (
                 self.icmp_header.type,
+            )
+
+        else:
+            proto_header = (
+                cdef int 0,
             )
 
         return proto_header
