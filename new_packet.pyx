@@ -17,6 +17,13 @@ cdef u_int16_t MaxCopySize = 4096 - 80
 # formula: DEF_MAX_QUEUELEN * (MaxCopySize+SockOverhead) / 2
 cdef u_int32_t SockRcvSize = 1024 * 4796 // 2
 
+cdef object user_callback
+def set_user_callback(ref):
+    '''Set required reference which will be called after packet data is parsed into C structs.'''
+    global user_callback
+
+    user_callback = ref
+
 cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) with gil:
 
     cdef NetfilterQueue nfqueue = <NetfilterQueue>data
@@ -330,13 +337,12 @@ cdef class NetfilterQueue:
         # processes using this libnetfilter_queue on this protocol family!
         nfq_close(self.h)
 
-    def bind(self, int queue_num, object user_callback, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
+    def bind(self, int queue_num, u_int16_t max_len=DEFAULT_MAX_QUEUELEN,
             u_int8_t mode=NFQNL_COPY_PACKET, u_int16_t range=MaxPacketSize, u_int32_t sock_len=SockRcvSize):
         '''Create and bind to a new queue.'''
 
         cdef unsigned int newsiz
 
-        self.user_callback = user_callback
         self.qh = nfq_create_queue(self.h, queue_num, <nfq_callback*>nf_callback, <void*>self)
         if self.qh == NULL:
             raise OSError(f'Failed to create queue {queue_num}')
