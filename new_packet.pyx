@@ -200,21 +200,16 @@ cdef class CPacket:
                 self.icmp_header.type,
             )
 
-        else:
-            proto_header = (
-                cdef int 0,
-            )
-
         return proto_header
 
     def get_payload(self):
         '''Return payload as Python bytes.'''
 
-        cdef object payload
+        # cdef object payload
+        #
+        # payload = self.payload
 
-        payload = self.payload[:self.payload_len]
-
-        return payload
+        return self.payload
 
     # def _before_exit(self):
     #     '''executes before returning from parse call.
