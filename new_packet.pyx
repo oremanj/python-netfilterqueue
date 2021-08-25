@@ -107,9 +107,9 @@ cdef class CPacket:
         if self._verdict_is_set:
             raise RuntimeWarning('Verdict already given for this packet.')
 
-        if self._modified_mark:
+        if self._mark:
             nfq_set_verdict2(
-                self._qh, self.id, verdict, self._modified_mark, self.data_len, self.data
+                self._qh, self.id, verdict, self._mark, self.data_len, self.data
             )
 
         else:
