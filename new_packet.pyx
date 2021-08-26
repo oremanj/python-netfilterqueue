@@ -2,6 +2,8 @@
 
 import socket
 
+from libc.stdio cimport printf
+
 # Constants for module users
 cdef int COPY_NONE = 0
 cdef int COPY_META = 1
