@@ -85,7 +85,8 @@ cdef class CPacket:
         iphdr_len = self.ip_header.ver_ihl & hdr_xand
         iphdr_len = iphdr_len * hdr_multiplier
 
-        printf('ip header length=%f\n', iphdr_len)
+        # NOTE: tshoot print
+        printf('ip header length=%f\n', <double>iphdr_len)
 
         cdef u_int8_t tcphdr_len
         cdef u_int8_t udphdr_len  = 8
@@ -102,7 +103,8 @@ cdef class CPacket:
             tcphdr_len = tcphdr_len & hdr_xand
             tcphdr_len = tcphdr_len * hdr_multiplier
 
-            printf('TCP HEADER LEN=%f\n', tcphdr_len)
+            # NOTE: tshoot print
+            printf('TCP HEADER LEN=%f\n', <double>tcphdr_len)
 
             self.cmbhdr_len = iphdr_len + tcphdr_len
 
