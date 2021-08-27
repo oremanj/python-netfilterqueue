@@ -26,7 +26,7 @@ def set_user_callback(ref):
 
     user_callback = ref
 
-cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) with gil:
+cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
 
     cdef u_int32_t mark
 
@@ -145,52 +145,6 @@ cdef class CPacket:
 
         return self.timestamp.tv_sec + (self.timestamp.tv_usec / 1000000.0)
 
-    cdef u_int8_t get_inint(self, bint name=False):
-        '''Returns index of inbound interface of packet. If the packet sourced from localhost or the input
-        interface is not known, 0 will be returned.
-        '''
-        # if name=True, socket.if_indextoname() will be returned.
-        # '''
-
-        # cdef object in_interface_name
-
-        cdef u_int8_t in_interface
-
-        in_interface = nfq_get_indev(self._nfa)
-
-        return in_interface
-
-        # try:
-        #     in_interface_name = socket.if_indextoname(in_interface)
-        # except OSError:
-        #     in_interface_name = 'unknown'
-
-        # return in_interface_name
-
-    # NOTE: keeping these funtions separate instead of making an argument option to adjust which interface to return.
-    # this will keep it explicit for which interface is returning to minimize chance of confusion/bugs.
-    cdef u_int8_t get_outint(self, bint name=False):
-        '''Returns index of outbound interface of packet. If the packet is destined for localhost or the output
-        interface is not yet known, 0 will be returned.
-        '''
-        # if name=True, socket.if_indextoname() will be returned.
-        # '''
-
-        # cdef object out_interface_name
-
-        cdef u_int8_t out_interface
-
-        out_interface = nfq_get_outdev(self._nfa)
-
-        return out_interface
-
-        # try:
-        #     out_interface_name = socket.if_indextoname(out_interface)
-        # except OSError:
-        #     out_interface_name = 'unknown'
-
-        # return out_interface_name
-
     cpdef update_mark(self, u_int32_t mark):
         '''Modifies the running mark of the packet.'''
 
@@ -220,16 +174,37 @@ cdef class CPacket:
 
         self.verdict(NF_REPEAT)
 
+    def get_inint_name(self):
+
+        # cdef object *int_name
+        #
+        # nfq_get_indev_name(self)
+
+        pass
+
+    def get_outint_name(self):
+
+        # cdef object *int_name
+        #
+        # nfq_get_outdev_name(self)
+
+        pass
+
     def get_hw(self):
         '''Return hardware information of the packet.
 
             hw_info = (
-                self.get_inint(), self.get_outint(), mac_addr, self.get_timestamp()
+                in_interface, out_interface, mac_addr, self.get_timestamp()
             )
         '''
 
         cdef object mac_addr
         cdef tuple hw_info
+        cdef int in_interface
+        cdef int out_interface
+
+        in_interface = nfq_get_indev(self._nfa)
+        out_interface = nfq_get_outdev(self._nfa)
 
         self._hw = nfq_get_packet_hw(self._nfa)
         if self._hw == NULL:
@@ -238,14 +213,16 @@ cdef class CPacket:
             # parsing process and forcing error handling will ensure it is dealt with [properly].
             raise OSError('MAC address not available in OUTPUT and PREROUTING chains')
 
-        # NOTE: can this not just be directly referenced below?
-        # self.hw_addr = self._hw.hw_addr
+        cdef char* hw_addr = self._hw.hw_addr
 
-        mac_addr = PyBytes_FromStringAndSize(<char*>self._hw.hw_addr, 8)
+        # NOTE: this is 8 bytes in source and lib_netfilter_queue, but unsure why since mac addresses are only 6
+        # bytes. the last two bytes may be padding, but either way removing here so it will not need to be done
+        # on the python side.
+        mac_addr = PyBytes_FromStringAndSize(hw_addr, 6)
 
         hw_info = (
-            self.get_inint(),
-            self.get_outint(),
+            in_interface,
+            out_interface,
             mac_addr,
             self.get_timestamp(),
         )

@@ -199,7 +199,7 @@ cdef class CPacket:
     cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
     cdef timeval timestamp
-    cdef u_int8_t hw_addr[8]
+    cdef u_int8_t hw_addr[6]
 
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
