@@ -12,58 +12,59 @@ cdef enum:
     EWOULDBLOCK = EAGAIN
     ENOBUFS = 105         # No buffer space available
 
-cdef extern from "netinet/ip.h":
-    struct ip_header:
-        u_int8_t tos
+# cython define
+cdef struct iphdr:
+        u_int8_t  ver_ihl
+        u_int8_t  tos
         u_int16_t tot_len
         u_int16_t id
         u_int16_t frag_off
-        u_int8_t ttl
-        u_int8_t protocol
+        u_int8_t  ttl
+        u_int8_t  protocol
         u_int16_t check
         u_int32_t saddr
         u_int32_t daddr
 
-# Dummy defines from netinet/in.h:
+# cython define
+cdef struct tcphdr:
+    u_int16_t th_sport
+    u_int16_t th_dport
+    u_int32_t th_seq
+    u_int32_t th_ack
+
+    u_int8_t  th_off
+
+    u_int8_t  th_flags
+    u_int16_t th_win
+    u_int16_t th_sum
+    u_int16_t th_urp
+
+# cython define
+cdef struct udphdr:
+    u_int16_t uh_sport
+    u_int16_t uh_dport
+    u_int16_t uh_ulen
+    u_int16_t uh_sum
+
+cdef struct icmphdr:
+    u_int8_t type
+
+# from netinet/in.h:
 cdef enum:
     IPPROTO_IP = 0        # Dummy protocol for TCP.
-    IPPROTO_HOPOPTS = 0   # IPv6 Hop-by-Hop options.
     IPPROTO_ICMP = 1      # Internet Control Message Protocol.
-    IPPROTO_IGMP = 2      # Internet Group Management Protocol. */
-    IPPROTO_IPIP = 4      # IPIP tunnels (older KA9Q tunnels use 94).
     IPPROTO_TCP = 6       # Transmission Control Protocol.
-    IPPROTO_EGP = 8       # Exterior Gateway Protocol.
-    IPPROTO_PUP = 12      # PUP protocol.
     IPPROTO_UDP = 17      # User Datagram Protocol.
-    IPPROTO_IDP = 22      # XNS IDP protocol.
-    IPPROTO_TP = 29       # SO Transport Protocol Class 4.
-    IPPROTO_IPV6 = 41     # IPv6 header.
-    IPPROTO_ROUTING = 43  # IPv6 routing header.
-    IPPROTO_FRAGMENT = 44 # IPv6 fragmentation header.
-    IPPROTO_RSVP = 46     # Reservation Protocol.
-    IPPROTO_GRE = 47      # General Routing Encapsulation.
-    IPPROTO_ESP = 50      # encapsulating security payload.
-    IPPROTO_AH = 51       # authentication header.
-    IPPROTO_ICMPV6 = 58   # ICMPv6.
-    IPPROTO_NONE = 59     # IPv6 no next header.
-    IPPROTO_DSTOPTS = 60  # IPv6 destination options.
-    IPPROTO_MTP = 92      # Multicast Transport Protocol.
-    IPPROTO_ENCAP = 98    # Encapsulation Header.
-    IPPROTO_PIM = 103     # Protocol Independent Multicast.
-    IPPROTO_COMP = 108    # Compression Header Protocol.
-    IPPROTO_SCTP = 132    # Stream Control Transmission Protocol.
-    IPPROTO_RAW = 255     # Raw IP packets.
-    IPPROTO_MAX
 
 cdef extern from "Python.h":
     object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 cdef extern from "sys/time.h":
     ctypedef long time_t
     struct timeval:
         time_t tv_sec
         time_t tv_usec
+
     struct timezone:
         pass
 
@@ -82,6 +83,7 @@ cdef extern from "libnfnetlink/linux_nfnetlink.h":
 cdef extern from "libnfnetlink/libnfnetlink.h":
     struct nfnl_handle:
         pass
+
     unsigned int nfnl_rcvbufsiz(nfnl_handle *h, unsigned int size)
 
 cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
@@ -89,6 +91,7 @@ cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
         NFQNL_COPY_NONE
         NFQNL_COPY_META
         NFQNL_COPY_PACKET
+
     struct nfqnl_msg_packet_hdr:
         u_int32_t packet_id
         u_int16_t hw_protocol
@@ -97,58 +100,41 @@ cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
 cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     struct nfq_handle:
         pass
+
     struct nfq_q_handle:
         pass
+
     struct nfq_data:
         pass
+
     struct nfqnl_msg_packet_hw:
         u_int8_t hw_addr[8]
 
     nfq_handle *nfq_open()
     int nfq_close(nfq_handle *h)
-
     int nfq_bind_pf(nfq_handle *h, u_int16_t pf)
     int nfq_unbind_pf(nfq_handle *h, u_int16_t pf)
-    ctypedef int *nfq_callback(nfq_q_handle *gh, nfgenmsg *nfmsg,
-                       nfq_data *nfad, void *data)
-    nfq_q_handle *nfq_create_queue(nfq_handle *h,
-                                    u_int16_t num,
-                                    nfq_callback *cb,
-                                    void *data)
+    ctypedef int *nfq_callback(nfq_q_handle *gh, nfgenmsg *nfmsg, nfq_data *nfad, void *data)
+    nfq_q_handle *nfq_create_queue(nfq_handle *h, u_int16_t num, nfq_callback *cb, void *data)
     int nfq_destroy_queue(nfq_q_handle *qh)
-
     int nfq_handle_packet(nfq_handle *h, char *buf, int len)
+    int nfq_set_mode(nfq_q_handle *qh, u_int8_t mode, unsigned int len)
+    q_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
+    int nfq_set_verdict(nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t data_len, unsigned char *buf) nogil
+    int nfq_set_verdict2(nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t mark,
+        u_int32_t datalen, unsigned char *buf) nogil
 
-    int nfq_set_mode(nfq_q_handle *qh,
-                       u_int8_t mode, unsigned int len)
-
-    q_set_queue_maxlen(nfq_q_handle *qh,
-                     u_int32_t queuelen)
-
-    int nfq_set_verdict(nfq_q_handle *qh,
-                          u_int32_t id,
-                          u_int32_t verdict,
-                          u_int32_t data_len,
-                          unsigned char *buf) nogil
-
-    int nfq_set_verdict2(nfq_q_handle *qh,
-                            u_int32_t id,
-                            u_int32_t verdict,
-                            u_int32_t mark,
-                            u_int32_t datalen,
-                            unsigned char *buf) nogil
     int nfq_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
-
     int nfq_fd(nfq_handle *h)
-    nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad)
-    int nfq_get_payload(nfq_data *nfad, unsigned char **data)
-    int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
+    nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad) nogil
+    int nfq_get_payload(nfq_data *nfad, unsigned char **data) nogil
+    int nfq_get_timestamp(nfq_data *nfad, timeval *tv) nogil
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
-    int nfq_get_nfmark (nfq_data *nfad)
+    int nfq_get_nfmark (nfq_data *nfad) nogil
     u_int8_t nfq_get_indev(nfq_data *nfad)
     u_int8_t nfq_get_outdev(nfq_data *nfad)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
-    
+
 # Dummy defines from linux/socket.h:
 cdef enum: #  Protocol families, same as address families.
     PF_INET = 2
@@ -168,52 +154,44 @@ cdef enum:
     NF_STOP
     NF_MAX_VERDICT = NF_STOP
 
-cdef class Packet:
+
+cdef class CPacket:
     cdef nfq_q_handle *_qh
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
     cdef nfqnl_msg_packet_hw *_hw
-    cdef bint _verdict_is_set # True if verdict has been issued, otherwise false
-    cdef u_int32_t _mark # Mark given to packet
-    cdef bytes _given_payload # New payload of packet, or null
 
-    # From NFQ packet header:
-    cdef readonly u_int32_t id
-    cdef readonly u_int16_t hw_protocol
-    cdef readonly u_int8_t hook
-    cdef readonly u_int32_t mark
+    cdef u_int32_t id
+
+    # protocol headers
+    cdef iphdr *ip_header
+    cdef tcphdr *tcp_header
+    cdef udphdr *udp_header
+    cdef icmphdr *icmp_header
+
+    cdef u_int8_t cmbhdr_len
+
+    cdef bint _verdict_is_set
+    cdef u_int32_t _mark
 
     # Packet details:
-    cdef Py_ssize_t payload_len
+    cdef Py_ssize_t data_len
+    cdef readonly unsigned char *data
     cdef readonly unsigned char *payload
     cdef timeval timestamp
-    cdef u_int8_t hw_addr[8]
 
-    # TODO: implement these | likely not using in this manner.
-    #cdef u_int8_t hw_addr[8] # A eui64-formatted address?
-    #cdef readonly u_int32_t nfmark
-    #cdef readonly u_int32_t indev
-    #cdef readonly u_int32_t physindev
-    #cdef readonly u_int32_t outdev
-    #cdef readonly u_int32_t physoutdev
-
-    cdef set_nfq_data(self, nfq_q_handle *qh, nfq_data *nfa)
+    cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
+    cdef void _parse(self) nogil
     cdef void verdict(self, u_int32_t verdict)
-    cpdef get_inint(self, bint name=*)
-    cpdef get_outint(self, bint name=*)
+    cdef double get_timestamp(self)
     cpdef update_mark(self, u_int32_t mark)
-    cpdef Py_ssize_t get_payload_len(self)
-    cpdef double get_timestamp(self)
-    cpdef set_payload(self, bytes payload)
     cpdef accept(self)
     cpdef drop(self)
     cpdef forward(self, u_int16_t queue_num)
     cpdef repeat(self)
 
 cdef class NetfilterQueue:
-    cdef object user_callback # User callback
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue
     cdef u_int16_t af # Address family
     cdef packet_copy_size # Amount of packet metadata + data copied to buffer
-
