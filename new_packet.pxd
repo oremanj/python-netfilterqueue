@@ -58,7 +58,6 @@ cdef enum:
 
 cdef extern from "Python.h":
     object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
-    object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
 cdef extern from "sys/time.h":
     ctypedef long time_t
@@ -113,39 +112,19 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
 
     nfq_handle *nfq_open()
     int nfq_close(nfq_handle *h)
-
     int nfq_bind_pf(nfq_handle *h, u_int16_t pf)
     int nfq_unbind_pf(nfq_handle *h, u_int16_t pf)
-    ctypedef int *nfq_callback(nfq_q_handle *gh, nfgenmsg *nfmsg,
-                       nfq_data *nfad, void *data)
-    nfq_q_handle *nfq_create_queue(nfq_handle *h,
-                                    u_int16_t num,
-                                    nfq_callback *cb,
-                                    void *data)
+    ctypedef int *nfq_callback(nfq_q_handle *gh, nfgenmsg *nfmsg, nfq_data *nfad, void *data)
+    nfq_q_handle *nfq_create_queue(nfq_handle *h, u_int16_t num, nfq_callback *cb, void *data)
     int nfq_destroy_queue(nfq_q_handle *qh)
-
     int nfq_handle_packet(nfq_handle *h, char *buf, int len)
+    int nfq_set_mode(nfq_q_handle *qh, u_int8_t mode, unsigned int len)
+    q_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
+    int nfq_set_verdict(nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t data_len, unsigned char *buf) nogil
+    int nfq_set_verdict2(nfq_q_handle *qh, u_int32_t id, u_int32_t verdict, u_int32_t mark,
+        u_int32_t datalen, unsigned char *buf) nogil
 
-    int nfq_set_mode(nfq_q_handle *qh,
-                       u_int8_t mode, unsigned int len)
-
-    q_set_queue_maxlen(nfq_q_handle *qh,
-                     u_int32_t queuelen)
-
-    int nfq_set_verdict(nfq_q_handle *qh,
-                          u_int32_t id,
-                          u_int32_t verdict,
-                          u_int32_t data_len,
-                          unsigned char *buf) nogil
-
-    int nfq_set_verdict2(nfq_q_handle *qh,
-                            u_int32_t id,
-                            u_int32_t verdict,
-                            u_int32_t mark,
-                            u_int32_t datalen,
-                            unsigned char *buf) nogil
     int nfq_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
-
     int nfq_fd(nfq_handle *h)
     nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad) nogil
     int nfq_get_payload(nfq_data *nfad, unsigned char **data) nogil
@@ -198,15 +177,13 @@ cdef class CPacket:
     # Packet details:
     cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
+    cdef readonly unsigned char *payload
     cdef timeval timestamp
-    cdef u_int8_t hw_addr[6]
 
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
     cdef void verdict(self, u_int32_t verdict)
     cdef double get_timestamp(self)
-    cdef u_int8_t get_inint(self, bint name=?)
-    cdef u_int8_t get_outint(self, bint name=?)
     cpdef update_mark(self, u_int32_t mark)
     cpdef accept(self)
     cpdef drop(self)

@@ -26,13 +26,13 @@ def set_user_callback(ref):
 
     user_callback = ref
 
-cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data):
+cdef int nf_callback(nfq_q_handle *qh, nfgenmsg *nfmsg, nfq_data *nfa, void *data) with gil:
 
     cdef u_int32_t mark
 
     packet = CPacket()
-    with nogil:
-        mark = packet.parse(qh, nfa)
+    # with nogil:
+    mark = packet.parse(qh, nfa)
 
     user_callback(packet, mark)
 
@@ -79,48 +79,58 @@ cdef class CPacket:
 
         self.ip_header = <iphdr*>self.data
 
-        cdef u_int8_t hdr_shift = 4
-        cdef u_int8_t hdr_multiplier = 4
-        cdef u_int8_t hdr_xand = 15
         cdef u_int8_t iphdr_len
 
-        iphdr_len = self.ip_header.ver_ihl & hdr_xand
-        iphdr_len = iphdr_len * hdr_multiplier
+        iphdr_len = (self.ip_header.ver_ihl & 15) * 4
 
         # NOTE: tshoot print
         printf('ip header length=%f\n', <double>iphdr_len)
 
         cdef u_int8_t tcphdr_len
-        cdef u_int8_t udphdr_len  = 8
-        cdef u_int8_t icmphdr_len = 4
+        cdef u_int8_t protohdr_len
 
         cdef void *data = &self.data[iphdr_len]
-        cdef ptrdiff_t hdrptr = <u_int32_t*>data - <u_int32_t*>self.data
+        # printf('data=%p, self.data=%p\n', <void*>&data, <void*>&self.data)
+        # cdef ptrdiff_t hdrptr = <u_int32_t*>data - <u_int32_t*>self.data
 
         if (self.ip_header.protocol == IPPROTO_TCP):
+            printf('TCP=%s\n', <char*>self.data_len)
 
-            self.tcp_header = <tcphdr*>&hdrptr
+            self.tcp_header = <tcphdr*>&data
 
-            tcphdr_len = self.tcp_header.th_off >> hdr_shift
-            tcphdr_len = tcphdr_len & hdr_xand
-            tcphdr_len = tcphdr_len * hdr_multiplier
+            tcphdr_len = (self.tcp_header.th_off >> 4) & 15
+            protohdr_len = tcphdr_len * 4
 
             # NOTE: tshoot print
-            printf('TCP HEADER LEN=%f\n', <double>tcphdr_len)
+            printf('TCP SPORT=%f\n', <double>self.tcp_header.th_sport)
 
-            self.cmbhdr_len = iphdr_len + tcphdr_len
+            # self.cmbhdr_len = iphdr_len + tcphdr_len
 
         elif (self.ip_header.protocol == IPPROTO_UDP):
 
-            self.udp_header = <udphdr*>&hdrptr
+            self.udp_header = <udphdr*>&data
 
-            self.cmbhdr_len = iphdr_len + udphdr_len
+            protohdr_len = iphdr_len + 8
+
+            # self.cmbhdr_len = iphdr_len + 8
 
         elif (self.ip_header.protocol == IPPROTO_ICMP):
 
-            self.icmp_header = <icmphdr*>&hdrptr
+            self.icmp_header = <icmphdr*>&data
 
-            self.cmbhdr_len = iphdr_len + icmphdr_len
+            protohdr_len = iphdr_len + 4
+
+            # self.cmbhdr_len = iphdr_len + 4
+
+        else:
+            printf('UNKNOWN PROTOCOL=%f\n', <double>self.ip_header.protocol)
+
+        self.cmbhdr_len = protohdr_len + 20
+
+        self.payload = &self.data[iphdr_len+protohdr_len]
+
+        printf('CMBHDR LEN=%f\n', <double>self.cmbhdr_len)
+        printf('DATA LEN=%f\n', <double>self.data_len)
 
     cdef void verdict(self, u_int32_t verdict):
         '''Call appropriate set_verdict function on packet.'''
@@ -208,17 +218,18 @@ cdef class CPacket:
 
         self._hw = nfq_get_packet_hw(self._nfa)
         if self._hw == NULL:
+            print(f'HW ERROR: {self._hw.hw_addr}')
             # nfq_get_packet_hw doesn't work on OUTPUT and PREROUTING chains
             # NOTE: making this a quick fail scenario since this would likely cause problems later in the packet
             # parsing process and forcing error handling will ensure it is dealt with [properly].
             raise OSError('MAC address not available in OUTPUT and PREROUTING chains')
 
-        cdef char* hw_addr = self._hw.hw_addr
+        cdef u_int8_t[8] hw_addr = self._hw.hw_addr
 
         # NOTE: this is 8 bytes in source and lib_netfilter_queue, but unsure why since mac addresses are only 6
         # bytes. the last two bytes may be padding, but either way removing here so it will not need to be done
         # on the python side.
-        mac_addr = PyBytes_FromStringAndSize(hw_addr, 6)
+        mac_addr = PyBytes_FromStringAndSize(<char*>hw_addr, 6)
 
         hw_info = (
             in_interface,
@@ -233,6 +244,12 @@ cdef class CPacket:
         '''Return layer 3-7 of packet data.'''
 
         return self.data[:self.data_len]
+
+    def get_ip_header_raw(self):
+        return self.data[:20]
+
+    def get_proto_header_raw(self):
+        return self.data[20:self.cmbhdr_len]
 
     def get_ip_header(self):
         '''Return layer3 of packet data as a tuple converted directly from C struct.'''
@@ -298,11 +315,20 @@ cdef class CPacket:
     def get_payload(self):
         '''Return payload (>layer4) as Python bytes.'''
 
-        cdef object payload
+        # cdef Py_ssize_t hdr_len = <Py_ssize_t>self.cmbhdr_len
 
-        payload = self.data[<Py_ssize_t>self.cmbhdr_len:self.data_len]
+        cdef Py_ssize_t payload_len = self.data_len - self.cmbhdr_len
 
-        return payload
+
+        return self.payload[:payload_len]
+
+        # if self.data_len - hdr_len > 0:
+        #     # print(f'DATA_LEN-1 = {self.data_len-1}')
+        #     # return self.data[hdr_len:self.data_len-1]
+        #     return self.payload
+
+        # else:
+        #     return b''
 
 
 cdef class NetfilterQueue:
@@ -371,9 +397,7 @@ cdef class NetfilterQueue:
         cdef int fd = self.get_fd()
         cdef char buf[4096]
         cdef int rv
-        cdef int recv_flags
-
-        recv_flags = 0
+        cdef int recv_flags = 0
 
         while True:
             with nogil:

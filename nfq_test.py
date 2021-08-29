@@ -4,8 +4,11 @@ import threading
 
 from time import perf_counter_ns
 from ipaddress import IPv4Address
+from struct import Struct
 
-from new_packet import set_user_callback, NetfilterQueue
+from new_packet import set_user_callback, NetfilterQueue # pylint: disable=import-error
+
+short_unpack = Struct('!H').unpack
 
 TEST_FORWARD = 0
 
@@ -17,34 +20,44 @@ def print_and_accept(pkt, pkt_mark):
 #    print(pkt_mark)
 
     hw_info = pkt.get_hw()
+    print('[rcvd] hw info')
 
-#    print(hw_info)
+    # print(hw_info)
 
 #    print(hw_info[2].hex())
 
-#    print('-'*30)
+    # print('-'*30)
 
-#    data = pkt.get_raw_packet()
+    data = pkt.get_raw_packet()
+
+    print('[rcvd] RAW PACKET')
 
 #    print(data[0], (data[0] & 15) * 4)
 
-#    print('-'*30)
+    # print('-'*30)
 
     ip_header = pkt.get_ip_header()
+    if ip_header[6] == 6:
+        print('[rcvd] ip header')
 
 #    print(ip_header)
-#    print(ip_header[6], IPv4Address(ip_header[8]), IPv4Address(ip_header[9]))
+        print(ip_header[6], IPv4Address(ip_header[8]), IPv4Address(ip_header[9]))
 
 #    print('-'*30)
 
     proto_header = pkt.get_proto_header()
 
-#    print(pkt.get_proto_header())
+    if ip_header[6] == 6:
+        print('[rcvd] proto header')
+        print(f'th_off={proto_header[4]}', proto_header)
 
-#    print('-'*30)
+    print('-'*30)
 
-    payload = pkt.get_payload()
-#    print(pkt.get_payload())
+    if ip_header[6] == 6:
+
+
+        payload = pkt.get_payload()
+        print(payload)
 
 #    t, s, d = pkt.get_ip_header()
 
@@ -102,7 +115,7 @@ def q_two(pkt):
     print('-'*30)
 
 def queue(callback, queue_num):
-    set_user_callback(print_and_accept)
+    set_user_callback(callback)
 
     nfqueue = NetfilterQueue()
     nfqueue.bind(queue_num)
@@ -117,11 +130,27 @@ def queue(callback, queue_num):
     finally:
         nfqueue.unbind()
 
+def tcp_test(packet, mark):
+    print('+'*30)
+
+    start = perf_counter_ns()
+    ip_header = packet.get_ip_header()
+    if ip_header[6] == 6:
+        proto_header = packet.get_proto_header()
+        print(f'{IPv4Address(ip_header[8])}:{proto_header[0]} > {IPv4Address(ip_header[9])}:{proto_header[1]}')
+        print(packet.get_ip_header_raw())
+        print(packet.get_proto_header_raw())
+        print(packet.get_raw_packet())
+
+    print('='*30)
+
 if __name__ == '__main__':
+
+    CALLBACK = tcp_test
 
     if (TEST_FORWARD):
         threading.Thread(target=queue, args=(q_one, 1)).start()
         threading.Thread(target=queue, args=(q_two, 2)).start()
 
     else:
-        queue(print_and_accept, 1)
+        queue(CALLBACK, 1)
