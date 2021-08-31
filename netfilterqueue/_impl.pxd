@@ -176,7 +176,7 @@ cdef class CPacket:
     cdef u_int8_t _cmbhdr_len
     cdef readonly unsigned char *data
     cdef readonly unsigned char *payload
-    cdef time_t timestamp
+    cdef time_t _timestamp
 
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
