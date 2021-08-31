@@ -6,6 +6,17 @@ cdef extern from "sys/types.h":
 cdef extern from "<errno.h>":
     int errno
 
+cdef extern from "time.h" nogil:
+    ctypedef long time_t
+    time_t time(time_t*)
+
+    struct timeval:
+        time_t tv_sec
+        time_t tv_usec
+
+    struct timezone:
+        pass
+
 # dummy defines from asm-generic/errno.h:
 cdef enum:
     EAGAIN = 11           # Try again
@@ -48,6 +59,7 @@ cdef struct udphdr:
 
 cdef struct icmphdr:
     u_int8_t type
+    u_int8_t code
 
 # from netinet/in.h:
 cdef enum:
@@ -58,15 +70,6 @@ cdef enum:
 
 cdef extern from "Python.h":
     object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
-
-cdef extern from "sys/time.h":
-    ctypedef long time_t
-    struct timeval:
-        time_t tv_sec
-        time_t tv_usec
-
-    struct timezone:
-        pass
 
 cdef extern from "netinet/in.h":
     u_int32_t ntohl (u_int32_t __netlong) nogil
@@ -174,16 +177,15 @@ cdef class CPacket:
     cdef bint _verdict_is_set
     cdef u_int32_t _mark
 
-    # Packet details:
+    # Packet details
     cdef Py_ssize_t data_len
     cdef readonly unsigned char *data
     cdef readonly unsigned char *payload
-    cdef timeval timestamp
+    cdef time_t timestamp
 
     cdef u_int32_t parse(self, nfq_q_handle *qh, nfq_data *nfa) nogil
     cdef void _parse(self) nogil
     cdef void verdict(self, u_int32_t verdict)
-    cdef double get_timestamp(self)
     cpdef update_mark(self, u_int32_t mark)
     cpdef accept(self)
     cpdef drop(self)
