@@ -25,16 +25,16 @@ cdef enum:
 
 # cython define
 cdef struct iphdr:
-        u_int8_t  ver_ihl
-        u_int8_t  tos
-        u_int16_t tot_len
-        u_int16_t id
-        u_int16_t frag_off
-        u_int8_t  ttl
-        u_int8_t  protocol
-        u_int16_t check
-        u_int32_t saddr
-        u_int32_t daddr
+    u_int8_t  ver_ihl
+    u_int8_t  tos
+    u_int16_t tot_len
+    u_int16_t id
+    u_int16_t frag_off
+    u_int8_t  ttl
+    u_int8_t  protocol
+    u_int16_t check
+    u_int32_t saddr
+    u_int32_t daddr
 
 # cython define
 cdef struct tcphdr:
@@ -67,9 +67,6 @@ cdef enum:
     IPPROTO_ICMP = 1      # Internet Control Message Protocol.
     IPPROTO_TCP = 6       # Transmission Control Protocol.
     IPPROTO_UDP = 17      # User Datagram Protocol.
-
-cdef extern from "Python.h":
-    object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
 
 cdef extern from "netinet/in.h":
     u_int32_t ntohl (u_int32_t __netlong) nogil
@@ -171,13 +168,12 @@ cdef class CPacket:
     cdef udphdr *udp_header
     cdef icmphdr *icmp_header
 
-    cdef u_int8_t cmbhdr_len
-
     cdef bint _verdict_is_set
     cdef u_int32_t _mark
 
     # Packet details
-    cdef Py_ssize_t data_len
+    cdef int _data_len
+    cdef u_int8_t _cmbhdr_len
     cdef readonly unsigned char *data
     cdef readonly unsigned char *payload
     cdef time_t timestamp
