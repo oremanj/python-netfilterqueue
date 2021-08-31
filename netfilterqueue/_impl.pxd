@@ -168,7 +168,7 @@ cdef class CPacket:
     cdef udphdr *udp_header
     cdef icmphdr *icmp_header
 
-    cdef bint _verdict_is_set
+    cdef bint _verdict
     cdef u_int32_t _mark
 
     # Packet details
