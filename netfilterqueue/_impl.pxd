@@ -163,8 +163,7 @@ cdef class CPacket:
     cdef nfq_data *_nfa
     cdef nfqnl_msg_packet_hdr *_hdr
     cdef nfqnl_msg_packet_hw *_hw
-
-    cdef u_int32_t id
+    cdef u_int32_t _id
 
     # protocol headers
     cdef iphdr *ip_header
