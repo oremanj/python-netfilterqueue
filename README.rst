@@ -178,6 +178,18 @@ returning.
 Usage
 =====
 
+In Debianiptables is being replaced by nftables starting with Debian Buster
+But You can use nftables in legacy mode::
+    
+    apt install nftables
+
+Switching to the legacy version::
+
+    update-alternatives --set iptables /usr/sbin/iptables-legacy
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+    
+For more info visit https://wiki.debian.org/nftables
+
 To send packets to the queue::
 
     iptables -I <table or chain> <match specification> -j NFQUEUE --queue-num <queue number>
