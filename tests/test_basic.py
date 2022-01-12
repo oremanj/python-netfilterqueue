@@ -90,6 +90,6 @@ async def test_errors(harness):
     from netfilterqueue import NetfilterQueue
 
     nfq = NetfilterQueue()
-    nfq.bind(1, lambda p: None, sock_len=1024)
+    nfq.bind(1, lambda p: None, sock_len=131072)
     with pytest.raises(RuntimeError, match="A queue is already bound"):
-        nfq.bind(2, lambda p: None, sock_len=1024)
+        nfq.bind(2, lambda p: None, sock_len=131072)
