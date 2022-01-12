@@ -1,4 +1,13 @@
-v0.8.1 30 Jan 2017
+v0.9.0, unreleased
+    Improve usability when Packet objects are retained past the callback
+    Add Packet.retain() to save the packet contents in such cases
+    Eliminate warnings during build on py3
+    Add CI and basic test suite
+    Raise a warning, not an error, if we don't get the bufsize we want
+    Don't allow bind() more than once on the same NetfilterQueue, since
+      that would leak the old queue handle
+
+v0.8.1, 30 Jan 2017
     Fix bug #25- crashing when used in OUTPUT or POSTROUTING chains
 
 v0.8, 15 Dec 2016

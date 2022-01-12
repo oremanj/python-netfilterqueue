@@ -22,9 +22,21 @@ DEF MaxCopySize = BufferSize - MetadataSize
 DEF SockOverhead = 760+20
 DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
-DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize / 2
+DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
+
+cdef extern from "Python.h":
+    const char* __FILE__
+    int __LINE__
+
+cdef extern from *:
+    """
+    #if PY_MAJOR_VERSION < 3
+    #define PyBytes_FromStringAndSize PyString_FromStringAndSize
+    #endif
+    """
 
 import socket
+import warnings
 cimport cpython.version
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
@@ -35,6 +47,7 @@ cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
     packet = Packet()
     packet.set_nfq_data(qh, nfa)
     user_callback(packet)
+    packet.drop_refs()
     return 1
 
 cdef class Packet:
@@ -54,20 +67,36 @@ cdef class Packet:
         Assign a packet from NFQ to this object. Parse the header and load
         local values.
         """
+        cdef nfqnl_msg_packet_hw *hw
+        cdef nfqnl_msg_packet_hdr *hdr
+
+        hdr = nfq_get_msg_packet_hdr(nfa)
         self._qh = qh
-        self._nfa = nfa
-        self._hdr = nfq_get_msg_packet_hdr(nfa)
+        self.id = ntohl(hdr.packet_id)
+        self.hw_protocol = ntohs(hdr.hw_protocol)
+        self.hook = hdr.hook
 
-        self.id = ntohl(self._hdr.packet_id)
-        self.hw_protocol = ntohs(self._hdr.hw_protocol)
-        self.hook = self._hdr.hook
+        hw = nfq_get_packet_hw(nfa)
+        if hw == NULL:
+            # nfq_get_packet_hw doesn't work on OUTPUT and PREROUTING chains
+            self._hwaddr_is_set = False
+        else:
+            self.hw_addr = hw.hw_addr
+            self._hwaddr_is_set = True
 
-        self.payload_len = nfq_get_payload(self._nfa, &self.payload)
+        self.payload_len = nfq_get_payload(nfa, &self.payload)
         if self.payload_len < 0:
             raise OSError("Failed to get payload of packet.")
 
-        nfq_get_timestamp(self._nfa, &self.timestamp)
+        nfq_get_timestamp(nfa, &self.timestamp)
         self.mark = nfq_get_nfmark(nfa)
+
+    cdef drop_refs(self):
+        """
+        Called at the end of the user_callback, when the storage passed to
+        set_nfq_data() is about to be deallocated.
+        """
+        self.payload = NULL
 
     cdef void verdict(self, u_int8_t verdict):
         """Call appropriate set_verdict... function on packet."""
@@ -99,23 +128,23 @@ cdef class Packet:
 
     def get_hw(self):
         """Return the hardware address as Python string."""
-        self._hw = nfq_get_packet_hw(self._nfa)
-        if self._hw == NULL:
-            # nfq_get_packet_hw doesn't work on OUTPUT and PREROUTING chains
-            return None
-        self.hw_addr = self._hw.hw_addr
         cdef object py_string
-        if cpython.version.PY_MAJOR_VERSION >= 3:
-            py_string = PyBytes_FromStringAndSize(<char*>self.hw_addr, 8)
-        else:
-            py_string = PyString_FromStringAndSize(<char*>self.hw_addr, 8)
+        py_string = PyBytes_FromStringAndSize(<char*>self.hw_addr, 8)
         return py_string
 
-    def get_payload(self):
+    cpdef bytes get_payload(self):
         """Return payload as Python string."""
-        cdef object py_string
-        py_string = self.payload[:self.payload_len]
-        return py_string
+        if self._owned_payload:
+            return self._owned_payload
+        elif self.payload != NULL:
+            return self.payload[:self.payload_len]
+        else:
+            raise RuntimeError(
+                "Payload data is no longer available. You must call "
+                "retain() within the user_callback in order to copy "
+                "the payload if you need to expect it after your "
+                "callback has returned."
+            )
 
     cpdef Py_ssize_t get_payload_len(self):
         return self.payload_len
@@ -135,6 +164,9 @@ cdef class Packet:
         if self._mark_is_set:
             return self._given_mark
         return self.mark
+
+    cpdef retain(self):
+        self._owned_payload = self.get_payload()
 
     cpdef accept(self):
         """Accept the packet."""
@@ -174,6 +206,9 @@ cdef class NetfilterQueue:
                 u_int32_t range=MaxPacketSize,
                 u_int32_t sock_len=SockRcvSize):
         """Create and bind to a new queue."""
+        if self.qh != NULL:
+            raise RuntimeError("A queue is already bound; use unbind() first")
+
         cdef unsigned int newsiz
         self.user_callback = user_callback
         self.qh = nfq_create_queue(self.h, queue_num,
@@ -184,14 +219,24 @@ cdef class NetfilterQueue:
         if range > MaxCopySize:
             range = MaxCopySize
         if nfq_set_mode(self.qh, mode, range) < 0:
+            self.unbind()
             raise OSError("Failed to set packet copy mode.")
 
         nfq_set_queue_maxlen(self.qh, max_len)
 
-        newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h),sock_len)
-        if newsiz != sock_len*2:
-            raise RuntimeWarning("Socket rcvbuf limit is now %d, requested %d." % (newsiz,sock_len))
-    
+        newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h), sock_len)
+        if newsiz != sock_len * 2:
+            try:
+                warnings.warn_explicit(
+                    "Socket rcvbuf limit is now %d, requested %d." % (newsiz, sock_len),
+                    category=RuntimeWarning,
+                    filename=bytes(__FILE__).decode("ascii"),
+                    lineno=__LINE__,
+                )
+            except:  # if warnings are being treated as errors
+                self.unbind()
+                raise
+
     def unbind(self):
         """Destroy the queue."""
         if self.qh != NULL:

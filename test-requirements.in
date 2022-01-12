@@ -1,0 +1,5 @@
+git+https://github.com/NightTsarina/python-unshare.git@4e98c177bdeb24c5dcfcd66c457845a776bbb75c
+pytest
+trio
+pytest-trio
+async_generator
