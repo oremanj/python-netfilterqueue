@@ -220,7 +220,7 @@ class Harness:
             else:
                 raise RuntimeError(
                     "Couldn't bind any netfilter queue number between 0-15"
-                )
+                ) from last_error
         try:
             rule = f"-d {PEER_IP[idx]} -j NFQUEUE --queue-num {queue_num}"
             await trio.run_process(f"/sbin/iptables -A FORWARD {rule}".split())

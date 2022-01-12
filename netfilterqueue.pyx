@@ -206,6 +206,9 @@ cdef class NetfilterQueue:
                 u_int32_t range=MaxPacketSize,
                 u_int32_t sock_len=SockRcvSize):
         """Create and bind to a new queue."""
+        if self.qh != NULL:
+            raise RuntimeError("A queue is already bound; use unbind() first")
+
         cdef unsigned int newsiz
         self.user_callback = user_callback
         self.qh = nfq_create_queue(self.h, queue_num,
@@ -216,18 +219,23 @@ cdef class NetfilterQueue:
         if range > MaxCopySize:
             range = MaxCopySize
         if nfq_set_mode(self.qh, mode, range) < 0:
+            self.unbind()
             raise OSError("Failed to set packet copy mode.")
 
         nfq_set_queue_maxlen(self.qh, max_len)
 
         newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h), sock_len)
         if newsiz != sock_len * 2:
-            warnings.warn_explicit(
-                "Socket rcvbuf limit is now %d, requested %d." % (newsiz, sock_len),
-                category=RuntimeWarning,
-                filename=__FILE__,
-                lineno=__LINE__,
-            )
+            try:
+                warnings.warn_explicit(
+                    "Socket rcvbuf limit is now %d, requested %d." % (newsiz, sock_len),
+                    category=RuntimeWarning,
+                    filename=bytes(__FILE__).decode("ascii"),
+                    lineno=__LINE__,
+                )
+            except:  # if warnings are being treated as errors
+                self.unbind()
+                raise
 
     def unbind(self):
         """Destroy the queue."""

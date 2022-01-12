@@ -1,5 +1,6 @@
 import struct
 import trio
+import pytest
 
 
 async def test_comms_without_queue(harness):
@@ -74,3 +75,21 @@ async def test_rewrite_reorder(harness):
             nursery.start_soon(munge, p2)
             await harness.send(2, b"one", b"two", b"three", b"four")
             await harness.expect(2, b"numero uno", b"three", b"TWO", b"four")
+
+
+async def test_errors(harness):
+    with pytest.warns(RuntimeWarning, match="rcvbuf limit is"):
+        async with harness.capture_packets_to(2, sock_len=2**30):
+            pass
+
+    async with harness.capture_packets_to(2, queue_num=0):
+        with pytest.raises(OSError, match="Failed to create queue"):
+            async with harness.capture_packets_to(2, queue_num=0):
+                pass
+
+    from netfilterqueue import NetfilterQueue
+
+    nfq = NetfilterQueue()
+    nfq.bind(1, lambda p: None)
+    with pytest.raises(RuntimeError, match="A queue is already bound"):
+        nfq.bind(2, lambda p: None)
