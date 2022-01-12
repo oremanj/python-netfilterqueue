@@ -24,6 +24,10 @@ DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
 
+cdef extern from "Python.h":
+    const char* __FILE__
+    int __LINE__
+
 cdef extern from *:
     """
     #if PY_MAJOR_VERSION < 3
@@ -32,6 +36,7 @@ cdef extern from *:
     """
 
 import socket
+import warnings
 cimport cpython.version
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
@@ -215,9 +220,14 @@ cdef class NetfilterQueue:
 
         nfq_set_queue_maxlen(self.qh, max_len)
 
-        newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h),sock_len)
-        if newsiz != sock_len*2:
-            raise RuntimeWarning("Socket rcvbuf limit is now %d, requested %d." % (newsiz,sock_len))
+        newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h), sock_len)
+        if newsiz != sock_len * 2:
+            warnings.warn_explicit(
+                "Socket rcvbuf limit is now %d, requested %d." % (newsiz, sock_len),
+                category=RuntimeWarning,
+                filename=__FILE__,
+                lineno=__LINE__,
+            )
 
     def unbind(self):
         """Destroy the queue."""

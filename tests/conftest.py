@@ -206,6 +206,8 @@ class Harness:
             packets_w.send_nowait(p)
 
         nfq = netfilterqueue.NetfilterQueue()
+        # Use a smaller socket buffer to avoid a warning in CI
+        options.setdefault("sock_len", 131072)
         if queue_num >= 0:
             nfq.bind(queue_num, stash_packet, **options)
         else:
