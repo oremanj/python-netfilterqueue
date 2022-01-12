@@ -141,7 +141,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
 
     int nfq_fd(nfq_handle *h)
     nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad)
-    int nfq_get_payload(nfq_data *nfad, char **data)
+    int nfq_get_payload(nfq_data *nfad, unsigned char **data)
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
@@ -168,14 +168,13 @@ cdef enum:
 
 cdef class Packet:
     cdef nfq_q_handle *_qh
-    cdef nfq_data *_nfa
-    cdef nfqnl_msg_packet_hdr *_hdr
-    cdef nfqnl_msg_packet_hw *_hw
     cdef bint _verdict_is_set # True if verdict has been issued,
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
+    cdef bint _hwaddr_is_set
     cdef u_int32_t _given_mark # Mark given to packet
     cdef bytes _given_payload # New payload of packet, or null
+    cdef bytes _owned_payload
 
     # From NFQ packet header:
     cdef readonly u_int32_t id
@@ -185,7 +184,7 @@ cdef class Packet:
 
     # Packet details:
     cdef Py_ssize_t payload_len
-    cdef readonly char *payload
+    cdef readonly unsigned char *payload
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 
@@ -198,12 +197,15 @@ cdef class Packet:
     #cdef readonly u_int32_t physoutdev
 
     cdef set_nfq_data(self, nfq_q_handle *qh, nfq_data *nfa)
+    cdef drop_refs(self)
     cdef void verdict(self, u_int8_t verdict)
     cpdef Py_ssize_t get_payload_len(self)
     cpdef double get_timestamp(self)
+    cpdef bytes get_payload(self)
     cpdef set_payload(self, bytes payload)
     cpdef set_mark(self, u_int32_t mark)
     cpdef get_mark(self)
+    cpdef retain(self)
     cpdef accept(self)
     cpdef drop(self)
     cpdef repeat(self)
