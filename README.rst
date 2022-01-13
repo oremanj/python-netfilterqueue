@@ -82,11 +82,10 @@ From source
 
 To install from source::
 
+    pip install cython
     git clone https://github.com/oremanj/python-netfilterqueue
     cd python-netfilterqueue
     pip install .
-
-If Cython is installed, Distutils will use it to regenerate the .c source from the .pyx. It will then compile the .c into a .so.
 
 API
 ===

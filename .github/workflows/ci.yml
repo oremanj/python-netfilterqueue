@@ -8,7 +8,7 @@ on:
 
 jobs:
   Ubuntu:
-    name: 'Ubuntu (${{ matrix.python }})'
+    name: 'Ubuntu (${{ matrix.python }}${{ matrix.extra_name }})'
     timeout-minutes: 10
     runs-on: 'ubuntu-latest'
     strategy:
@@ -20,6 +20,16 @@ jobs:
           - '3.8'
           - '3.9'
           - '3.10'
+          - 'pypy-3.7'
+          - 'pypy-3.8'
+        check_lint: ['0']
+        extra_name: ['']
+        include:
+          - python: '2.7'
+            extra_name: ', build only'
+          - python: '3.9'
+            check_lint: '1'
+            extra_name: ', check lint'
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -30,5 +40,6 @@ jobs:
       - name: Run tests
         run: ./ci.sh
         env:
+          CHECK_LINT: '${{ matrix.check_lint }}'
           # Should match 'name:' up above
-          JOB_NAME: 'Ubuntu (${{ matrix.python }})'
+          JOB_NAME: 'Ubuntu (${{ matrix.python }}${{ matrix.extra_name }})'
