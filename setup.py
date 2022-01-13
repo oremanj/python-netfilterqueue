@@ -20,7 +20,9 @@ except ImportError:
         # We're being run by pip to figure out what we need. Request cython in
         # setup_requires below.
         setup_requires = ["cython"]
-    elif not os.path.exists(os.path.join(os.path.dirname(__file__), "netfilterqueue.c")):
+    elif not os.path.exists(
+        os.path.join(os.path.dirname(__file__), "netfilterqueue.c")
+    ):
         sys.stderr.write(
             "You must have Cython installed (`pip install cython`) to build this "
             "package from source.\nIf you're receiving this error when installing from "
@@ -35,6 +37,7 @@ except ImportError:
 setup(
     ext_modules=ext_modules,
     setup_requires=setup_requires,
+    python_requires=">=3.6",
     name="NetfilterQueue",
     version=VERSION,
     license="MIT",

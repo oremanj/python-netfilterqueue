@@ -103,11 +103,15 @@ async def test_errors(harness):
 
 async def test_unretained(harness):
     # Capture packets without retaining -> can't access payload
-    async with harness.capture_packets_to(2, trio.MemorySendChannel.send_nowait) as chan:
+    async with harness.capture_packets_to(
+        2, trio.MemorySendChannel.send_nowait
+    ) as chan:
         await harness.send(2, b"one", b"two")
         accept = True
         async for p in chan:
-            with pytest.raises(RuntimeError, match="Payload data is no longer available"):
+            with pytest.raises(
+                RuntimeError, match="Payload data is no longer available"
+            ):
                 p.get_payload()
             # Can still issue verdicts though
             if accept:
@@ -166,7 +170,7 @@ async def test_cb_exception_during_unbind(harness, capsys):
 
         @contextmanager
         def catch_unraisable_exception():
-            pass
+            yield
 
     with catch_unraisable_exception() as unraise, trio.CancelScope() as cscope:
         async with harness.capture_packets_to(2, cb):
@@ -188,7 +192,9 @@ async def test_cb_exception_during_unbind(harness, capsys):
             assert str(unraise.unraisable.exc_value) == "test"
 
     if not unraise:
-        assert "Exception ignored in: 'netfilterqueue callback" in capsys.readouterr().err
+        assert (
+            "Exception ignored in: 'netfilterqueue callback" in capsys.readouterr().err
+        )
 
     with pytest.raises(RuntimeError, match="Payload data is no longer available"):
         pkt.get_payload()
