@@ -5,7 +5,12 @@ set -ex -o pipefail
 pip install -U pip setuptools wheel
 sudo apt-get install libnetfilter-queue-dev
 
+# Cython is required to build the sdist...
+pip install cython
 python setup.py sdist --formats=zip
+
+# ... but not to install it
+pip uninstall -y cython
 pip install dist/*.zip
 
 if python --version 2>&1 | fgrep -q "Python 2.7"; then

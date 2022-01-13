@@ -18,8 +18,6 @@ black==21.12b0
     # via -r test-requirements.in
 click==8.0.3
     # via black
-cython==0.29.26
-    # via -r test-requirements.in
 idna==3.3
     # via trio
 iniconfig==1.1.1
