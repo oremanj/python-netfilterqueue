@@ -7,7 +7,8 @@ import sys
 import trio
 import unshare
 import netfilterqueue
-from typing import AsyncIterator
+from functools import partial
+from typing import AsyncIterator, Callable, Optional
 from async_generator import asynccontextmanager
 from pytest_trio.enable_trio_mode import *
 
@@ -93,7 +94,7 @@ async def peer_main(idx: int, parent_fd: int) -> None:
 
     # Enter the message-forwarding loop
     async def proxy_one_way(src, dest):
-        while True:
+        while src.fileno() >= 0:
             try:
                 msg = await src.recv(4096)
             except trio.ClosedResourceError:
@@ -109,6 +110,14 @@ async def peer_main(idx: int, parent_fd: int) -> None:
     async with trio.open_nursery() as nursery:
         nursery.start_soon(proxy_one_way, parent, peer)
         nursery.start_soon(proxy_one_way, peer, parent)
+
+
+def _default_capture_cb(
+    target: "trio.MemorySendChannel[netfilterqueue.Packet]",
+    packet: netfilterqueue.Packet,
+) -> None:
+    packet.retain()
+    target.send_nowait(packet)
 
 
 class Harness:
@@ -155,7 +164,9 @@ class Harness:
                         "peer subprocess exited with code {}".format(retval)
                     )
             finally:
-                await trio.run_process(f"ip link delete veth{idx}".split())
+                # On some kernels the veth device is removed when the subprocess exits
+                # and its netns goes away. check=False to suppress that error.
+                await trio.run_process(f"ip link delete veth{idx}".split(), check=False)
 
     async def _manage_peer(self, idx: int, *, task_status):
         async with trio.open_nursery() as nursery:
@@ -192,24 +203,28 @@ class Harness:
 
     @asynccontextmanager
     async def capture_packets_to(
-        self, idx: int, *, queue_num: int = -1, **options
+        self,
+        idx: int,
+        cb: Callable[
+            ["trio.MemorySendChannel[netfilterqueue.Packet]", netfilterqueue.Packet],
+            None,
+        ] = _default_capture_cb,
+        *,
+        queue_num: int = -1,
+        **options: int,
     ) -> AsyncIterator["trio.MemoryReceiveChannel[netfilterqueue.Packet]"]:
 
         packets_w, packets_r = trio.open_memory_channel(math.inf)
-
-        def stash_packet(p):
-            p.retain()
-            packets_w.send_nowait(p)
 
         nfq = netfilterqueue.NetfilterQueue()
         # Use a smaller socket buffer to avoid a warning in CI
         options.setdefault("sock_len", 131072)
         if queue_num >= 0:
-            nfq.bind(queue_num, stash_packet, **options)
+            nfq.bind(queue_num, partial(cb, packets_w), **options)
         else:
             for queue_num in range(16):
                 try:
-                    nfq.bind(queue_num, stash_packet, **options)
+                    nfq.bind(queue_num, partial(cb, packets_w), **options)
                     break
                 except Exception as ex:
                     last_error = ex
