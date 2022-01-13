@@ -79,9 +79,11 @@ async def test_rewrite_reorder(harness):
 
 
 async def test_errors(harness):
-    with pytest.warns(RuntimeWarning, match="rcvbuf limit is"):
+    with pytest.warns(RuntimeWarning, match="rcvbuf limit is") as record:
         async with harness.capture_packets_to(2, sock_len=2 ** 30):
             pass
+
+    assert record[0].filename.endswith("conftest.py")
 
     async with harness.capture_packets_to(2, queue_num=0):
         with pytest.raises(OSError, match="Failed to create queue"):

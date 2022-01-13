@@ -1,6 +1,7 @@
+import os, sys
 from setuptools import setup, Extension
 
-VERSION = "0.8.1"  # Remember to change CHANGES.txt and netfilterqueue.pyx when version changes.
+VERSION = "0.9.0"  # Remember to change CHANGES.txt and netfilterqueue.pyx when version changes.
 
 try:
     # Use Cython
@@ -14,6 +15,14 @@ try:
     )
 except ImportError:
     # No Cython
+    if not os.path.exists(os.path.join(os.path.dirname(__file__), "netfilterqueue.c")):
+        sys.stderr.write(
+            "You must have Cython installed (`pip install cython`) to build this "
+            "package from source.\nIf you're receiving this error when installing from "
+            "PyPI, please file a bug report at "
+            "https://github.com/oremanj/python-netfilterqueue/issues/new\n"
+        )
+        sys.exit(1)
     ext_modules = [
         Extension("netfilterqueue", ["netfilterqueue.c"], libraries=["netfilter_queue"])
     ]

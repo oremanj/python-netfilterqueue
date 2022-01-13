@@ -5,7 +5,7 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 8, 1)
+VERSION = (0, 9, 0)
 
 # Constants for module users
 COPY_NONE = 0
@@ -24,20 +24,12 @@ DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
 
-cdef extern from "Python.h":
-    const char* __FILE__
-    int __LINE__
-
 cdef extern from *:
     """
     #if PY_MAJOR_VERSION < 3
     #define PyBytes_FromStringAndSize PyString_FromStringAndSize
     #endif
     """
-
-import socket
-import warnings
-cimport cpython.version
 
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
                          nfq_data *nfa, void *data) with gil:
@@ -227,11 +219,11 @@ cdef class NetfilterQueue:
         newsiz = nfnl_rcvbufsiz(nfq_nfnlh(self.h), sock_len)
         if newsiz != sock_len * 2:
             try:
-                warnings.warn_explicit(
+                import warnings
+
+                warnings.warn(
                     "Socket rcvbuf limit is now %d, requested %d." % (newsiz, sock_len),
                     category=RuntimeWarning,
-                    filename=bytes(__FILE__).decode("ascii"),
-                    lineno=__LINE__,
                 )
             except:  # if warnings are being treated as errors
                 self.unbind()
@@ -267,6 +259,8 @@ cdef class NetfilterQueue:
 
     def run_socket(self, s):
         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
+        import socket
+
         while True:
             try:
                 buf = s.recv(BufferSize)

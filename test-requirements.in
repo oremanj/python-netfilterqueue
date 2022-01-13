@@ -3,6 +3,5 @@ pytest
 trio
 pytest-trio
 async_generator
-cython
 black
 platformdirs <= 2.4.0  # needed by black; 2.4.1+ don't support py3.6
