@@ -19,8 +19,9 @@ async def test_queue_dropping(harness):
                 packet.accept()
 
     async with trio.open_nursery() as nursery:
-        async with harness.capture_packets_to(2) as p2, \
-                   harness.capture_packets_to(1) as p1:
+        async with harness.capture_packets_to(2) as p2, harness.capture_packets_to(
+            1
+        ) as p1:
             nursery.start_soon(drop, p2, b"two")
             nursery.start_soon(drop, p1, b"one")
 
@@ -79,7 +80,7 @@ async def test_rewrite_reorder(harness):
 
 async def test_errors(harness):
     with pytest.warns(RuntimeWarning, match="rcvbuf limit is"):
-        async with harness.capture_packets_to(2, sock_len=2**30):
+        async with harness.capture_packets_to(2, sock_len=2 ** 30):
             pass
 
     async with harness.capture_packets_to(2, queue_num=0):

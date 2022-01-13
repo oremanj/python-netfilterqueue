@@ -65,9 +65,7 @@ def pytest_runtestloop():
 
 
 async def peer_main(idx: int, parent_fd: int) -> None:
-    parent = trio.socket.fromfd(
-        parent_fd, socket.AF_UNIX, socket.SOCK_SEQPACKET
-    )
+    parent = trio.socket.fromfd(parent_fd, socket.AF_UNIX, socket.SOCK_SEQPACKET)
 
     # Tell parent we've set up our netns, wait for it to confirm it's
     # created our veth interface
@@ -83,9 +81,7 @@ async def peer_main(idx: int, parent_fd: int) -> None:
         f"ip addr add {my_ip}/24 dev veth0",
         f"ip route add default via {router_ip} dev veth0",
     ):
-        await trio.run_process(
-            cmd.split(), capture_stdout=True, capture_stderr=True
-        )
+        await trio.run_process(cmd.split(), capture_stdout=True, capture_stderr=True)
 
     peer = trio.socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     await peer.bind((my_ip, 0))
@@ -226,11 +222,13 @@ class Harness:
             await trio.run_process(f"/sbin/iptables -A FORWARD {rule}".split())
             try:
                 async with packets_w, trio.open_nursery() as nursery:
+
                     @nursery.start_soon
                     async def listen_for_packets():
                         while True:
                             await trio.lowlevel.wait_readable(nfq.get_fd())
                             nfq.run(block=False)
+
                     yield packets_r
                     nursery.cancel_scope.cancel()
             finally:
