@@ -1,6 +1,3 @@
-include *.txt
-include *.rst
-include *.c
-include *.pyx
-include *.pxd
-recursive-include tests/ *.py
+include LICENSE.txt README.rst CHANGES.txt
+recursive-include netfilterqueue *.py *.pyx *.pxd *.c *.pyi py.typed
+recursive-include tests *.py

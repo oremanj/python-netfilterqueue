@@ -5,12 +5,12 @@ import socket
 import subprocess
 import sys
 import trio
-import unshare
+import unshare  # type: ignore
 import netfilterqueue
 from functools import partial
-from typing import AsyncIterator, Callable, Optional, Tuple
+from typing import Any, AsyncIterator, Callable, Dict, Optional, Tuple
 from async_generator import asynccontextmanager
-from pytest_trio.enable_trio_mode import *
+from pytest_trio.enable_trio_mode import *  # type: ignore
 
 
 # We'll create three network namespaces, representing a router (which
@@ -45,8 +45,8 @@ def enter_netns() -> None:
     subprocess.run("/sbin/ip link set lo up".split(), check=True)
 
 
-@pytest.hookimpl(tryfirst=True)
-def pytest_runtestloop():
+@pytest.hookimpl(tryfirst=True)  # type: ignore
+def pytest_runtestloop() -> None:
     if os.getuid() != 0:
         # Create a new user namespace for the whole test session
         outer = {"uid": os.getuid(), "gid": os.getgid()}
@@ -93,7 +93,9 @@ async def peer_main(idx: int, parent_fd: int) -> None:
     await peer.connect((peer_ip, peer_port))
 
     # Enter the message-forwarding loop
-    async def proxy_one_way(src, dest):
+    async def proxy_one_way(
+        src: trio.socket.SocketType, dest: trio.socket.SocketType
+    ) -> None:
         while src.fileno() >= 0:
             try:
                 msg = await src.recv(4096)
@@ -121,13 +123,13 @@ def _default_capture_cb(
 
 
 class Harness:
-    def __init__(self):
-        self._received = {}
-        self._conn = {}
-        self.dest_addr = {}
+    def __init__(self) -> None:
+        self._received: Dict[int, trio.MemoryReceiveChannel[bytes]] = {}
+        self._conn: Dict[int, trio.socket.SocketType] = {}
+        self.dest_addr: Dict[int, Tuple[str, int]] = {}
         self.failed = False
 
-    async def _run_peer(self, idx: int, *, task_status):
+    async def _run_peer(self, idx: int, *, task_status: Any) -> None:
         their_ip = PEER_IP[idx]
         my_ip = ROUTER_IP[idx]
         conn, child_conn = trio.socket.socketpair(socket.AF_UNIX, socket.SOCK_SEQPACKET)
@@ -169,10 +171,10 @@ class Harness:
                 # and its netns goes away. check=False to suppress that error.
                 await trio.run_process(f"ip link delete veth{idx}".split(), check=False)
 
-    async def _manage_peer(self, idx: int, *, task_status):
+    async def _manage_peer(self, idx: int, *, task_status: Any) -> None:
         async with trio.open_nursery() as nursery:
             await nursery.start(self._run_peer, idx)
-            packets_w, packets_r = trio.open_memory_channel(math.inf)
+            packets_w, packets_r = trio.open_memory_channel[bytes](math.inf)
             self._received[idx] = packets_r
             task_status.started()
             async with packets_w:
@@ -183,7 +185,7 @@ class Harness:
                     await packets_w.send(msg)
 
     @asynccontextmanager
-    async def run(self):
+    async def run(self) -> AsyncIterator[None]:
         async with trio.open_nursery() as nursery:
             async with trio.open_nursery() as start_nursery:
                 start_nursery.start_soon(nursery.start, self._manage_peer, 1)
@@ -258,14 +260,14 @@ class Harness:
         **options: int,
     ) -> AsyncIterator["trio.MemoryReceiveChannel[netfilterqueue.Packet]"]:
 
-        packets_w, packets_r = trio.open_memory_channel(math.inf)
+        packets_w, packets_r = trio.open_memory_channel[netfilterqueue.Packet](math.inf)
         queue_num, nfq = self.bind_queue(partial(cb, packets_w), **options)
         try:
             async with self.enqueue_packets_to(idx, queue_num):
                 async with packets_w, trio.open_nursery() as nursery:
 
                     @nursery.start_soon
-                    async def listen_for_packets():
+                    async def listen_for_packets() -> None:
                         while True:
                             await trio.lowlevel.wait_readable(nfq.get_fd())
                             nfq.run(block=False)
@@ -275,7 +277,7 @@ class Harness:
         finally:
             nfq.unbind()
 
-    async def expect(self, idx: int, *packets: bytes):
+    async def expect(self, idx: int, *packets: bytes) -> None:
         for expected in packets:
             with trio.move_on_after(5) as scope:
                 received = await self._received[idx].receive()
@@ -291,13 +293,13 @@ class Harness:
                     f"received {received!r}"
                 )
 
-    async def send(self, idx: int, *packets: bytes):
+    async def send(self, idx: int, *packets: bytes) -> None:
         for packet in packets:
             await self._conn[3 - idx].send(packet)
 
 
 @pytest.fixture
-async def harness() -> Harness:
+async def harness() -> AsyncIterator[Harness]:
     h = Harness()
     async with h.run():
         yield h

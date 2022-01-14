@@ -5,7 +5,6 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 9, 0)
 
 # Constants for module users
 COPY_NONE = 0
@@ -25,6 +24,10 @@ DEF SockCopySize = MaxCopySize + SockOverhead
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
 
 from cpython.exc cimport PyErr_CheckSignals
+
+cdef extern from "Python.h":
+    ctypedef struct PyTypeObject:
+        const char* tp_name
 
 # A negative return value from this callback will stop processing and
 # make nfq_handle_packet return -1, so we use that as the error flag.
@@ -342,6 +345,17 @@ cdef class NetfilterQueue:
                     raise e
             else:
                 nfq_handle_packet(self.h, buf, len(buf))
+
+cdef void _fix_names():
+    # Avoid ._impl showing up in reprs. This doesn't work on PyPy; there we would
+    # need to modify the name before PyType_Ready(), but I can't find any way to
+    # write Cython code that would execute at that time.
+    cdef PyTypeObject* tp = <PyTypeObject*>Packet
+    tp.tp_name = "netfilterqueue.Packet"
+    tp = <PyTypeObject*>NetfilterQueue
+    tp.tp_name = "netfilterqueue.NetfilterQueue"
+
+_fix_names()
 
 PROTOCOLS = {
     0: "HOPOPT",
