@@ -10,8 +10,8 @@ try:
 
     ext_modules = cythonize(
         Extension(
-            "netfilterqueue.__init__",
-            ["netfilterqueue/__init__.pyx"],
+            "netfilterqueue._impl",
+            ["netfilterqueue/_impl.pyx"],
             libraries=["netfilter_queue"],
         ),
         compiler_directives={"language_level": "3str"},
@@ -23,7 +23,7 @@ except ImportError:
         # setup_requires below.
         setup_requires = ["cython"]
     elif not os.path.exists(
-        os.path.join(os.path.dirname(__file__), "netfilterqueue/__init__.c")
+        os.path.join(os.path.dirname(__file__), "netfilterqueue/_impl.c")
     ):
         sys.stderr.write(
             "You must have Cython installed (`pip install cython`) to build this "
@@ -34,8 +34,8 @@ except ImportError:
         sys.exit(1)
     ext_modules = [
         Extension(
-            "netfilterqueue.__init__",
-            ["netfilterqueue/__init__.c"],
+            "netfilterqueue._impl",
+            ["netfilterqueue/_impl.c"],
             libraries=["netfilter_queue"],
         )
     ]
