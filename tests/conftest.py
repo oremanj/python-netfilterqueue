@@ -8,7 +8,7 @@ import trio
 import unshare
 import netfilterqueue
 from functools import partial
-from typing import AsyncIterator, Callable, Optional
+from typing import AsyncIterator, Callable, Optional, Tuple
 from async_generator import asynccontextmanager
 from pytest_trio.enable_trio_mode import *
 
@@ -124,6 +124,7 @@ class Harness:
     def __init__(self):
         self._received = {}
         self._conn = {}
+        self.dest_addr = {}
         self.failed = False
 
     async def _run_peer(self, idx: int, *, task_status):
@@ -188,8 +189,11 @@ class Harness:
                 start_nursery.start_soon(nursery.start, self._manage_peer, 1)
                 start_nursery.start_soon(nursery.start, self._manage_peer, 2)
             # Tell each peer about the other one's port
-            await self._conn[2].send(await self._received[1].receive())
-            await self._conn[1].send(await self._received[2].receive())
+            for idx in (1, 2):
+                self.dest_addr[idx] = (
+                    PEER_IP[idx], int(await self._received[idx].receive())
+                )
+                await self._conn[3 - idx].send(b"%d" % self.dest_addr[idx][1])
             yield
             self._conn[1].shutdown(socket.SHUT_WR)
             self._conn[2].shutdown(socket.SHUT_WR)
@@ -201,6 +205,47 @@ class Harness:
                         f"Peer {idx} received unexepcted packet {remainder!r}"
                     )
 
+    def bind_queue(
+        self,
+        cb: Callable[[netfilterqueue.Packet], None],
+        *,
+        queue_num: int = -1,
+        **options: int,
+    ) -> Tuple[int, netfilterqueue.NetfilterQueue]:
+        nfq = netfilterqueue.NetfilterQueue()
+        # Use a smaller socket buffer to avoid a warning in CI
+        options.setdefault("sock_len", 131072)
+        if queue_num >= 0:
+            nfq.bind(queue_num, cb, **options)
+        else:
+            for queue_num in range(16):
+                try:
+                    nfq.bind(queue_num, cb, **options)
+                    break
+                except Exception as ex:
+                    last_error = ex
+            else:
+                raise RuntimeError(
+                    "Couldn't bind any netfilter queue number between 0-15"
+                ) from last_error
+        return queue_num, nfq
+
+    @asynccontextmanager
+    async def enqueue_packets_to(
+        self, idx: int, queue_num: int, *, forwarded: bool = True
+    ) -> AsyncIterator[None]:
+        if forwarded:
+            chain = "FORWARD"
+        else:
+            chain = "OUTPUT"
+
+        rule = f"{chain} -d {PEER_IP[idx]} -j NFQUEUE --queue-num {queue_num}"
+        await trio.run_process(f"/sbin/iptables -A {rule}".split())
+        try:
+            yield
+        finally:
+            await trio.run_process(f"/sbin/iptables -D {rule}".split())
+
     @asynccontextmanager
     async def capture_packets_to(
         self,
@@ -209,33 +254,13 @@ class Harness:
             ["trio.MemorySendChannel[netfilterqueue.Packet]", netfilterqueue.Packet],
             None,
         ] = _default_capture_cb,
-        *,
-        queue_num: int = -1,
         **options: int,
     ) -> AsyncIterator["trio.MemoryReceiveChannel[netfilterqueue.Packet]"]:
 
         packets_w, packets_r = trio.open_memory_channel(math.inf)
-
-        nfq = netfilterqueue.NetfilterQueue()
-        # Use a smaller socket buffer to avoid a warning in CI
-        options.setdefault("sock_len", 131072)
-        if queue_num >= 0:
-            nfq.bind(queue_num, partial(cb, packets_w), **options)
-        else:
-            for queue_num in range(16):
-                try:
-                    nfq.bind(queue_num, partial(cb, packets_w), **options)
-                    break
-                except Exception as ex:
-                    last_error = ex
-            else:
-                raise RuntimeError(
-                    "Couldn't bind any netfilter queue number between 0-15"
-                ) from last_error
+        queue_num, nfq = self.bind_queue(partial(cb, packets_w), **options)
         try:
-            rule = f"-d {PEER_IP[idx]} -j NFQUEUE --queue-num {queue_num}"
-            await trio.run_process(f"/sbin/iptables -A FORWARD {rule}".split())
-            try:
+            async with self.enqueue_packets_to(idx, queue_num):
                 async with packets_w, trio.open_nursery() as nursery:
 
                     @nursery.start_soon
@@ -246,8 +271,6 @@ class Harness:
 
                     yield packets_r
                     nursery.cancel_scope.cancel()
-            finally:
-                await trio.run_process(f"/sbin/iptables -D FORWARD {rule}".split())
         finally:
             nfq.unbind()
 

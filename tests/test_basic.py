@@ -1,9 +1,13 @@
+import gc
 import struct
 import trio
 import trio.testing
 import pytest
 import signal
+import socket
 import sys
+import time
+import weakref
 
 from netfilterqueue import NetfilterQueue
 
@@ -84,6 +88,77 @@ async def test_rewrite_reorder(harness):
             await harness.expect(2, b"numero uno", b"three", b"TWO", b"four")
 
 
+async def test_mark_repeat(harness):
+    counter = 0
+    timestamps = []
+
+    def cb(chan, pkt):
+        nonlocal counter
+        assert pkt.get_mark() == counter
+        timestamps.append(pkt.get_timestamp())
+        if counter < 5:
+            counter += 1
+            pkt.set_mark(counter)
+            pkt.repeat()
+            assert pkt.get_mark() == counter
+        else:
+            pkt.accept()
+
+    async with harness.capture_packets_to(2, cb):
+        t0 = time.time()
+        await harness.send(2, b"testing")
+        await harness.expect(2, b"testing")
+        t1 = time.time()
+    assert counter == 5
+    # All iterations of the packet have the same timestamps
+    assert all(t == timestamps[0] for t in timestamps[1:])
+    assert t0 < timestamps[0] < t1
+
+
+async def test_hwaddr(harness):
+    hwaddrs = []
+
+    def cb(pkt):
+        hwaddrs.append((pkt.get_hw(), pkt.hook, pkt.get_payload()[28:]))
+        pkt.accept()
+
+    queue_num, nfq = harness.bind_queue(cb)
+    try:
+        async with trio.open_nursery() as nursery:
+
+            @nursery.start_soon
+            async def listen_for_packets():
+                while True:
+                    await trio.lowlevel.wait_readable(nfq.get_fd())
+                    nfq.run(block=False)
+
+            async with harness.enqueue_packets_to(2, queue_num, forwarded=True):
+                await harness.send(2, b"one", b"two")
+                await harness.expect(2, b"one", b"two")
+            async with harness.enqueue_packets_to(2, queue_num, forwarded=False):
+                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                for payload in (b"three", b"four"):
+                    sock.sendto(payload, harness.dest_addr[2])
+                with trio.fail_after(1):
+                    while len(hwaddrs) < 4:
+                        await trio.sleep(0.1)
+            nursery.cancel_scope.cancel()
+    finally:
+        nfq.unbind()
+
+    # Forwarded packets capture a hwaddr, but OUTPUT don't
+    FORWARD = 2
+    OUTPUT = 3
+    mac1 = hwaddrs[0][0]
+    assert mac1 is not None
+    assert hwaddrs == [
+        (mac1, FORWARD, b"one"),
+        (mac1, FORWARD, b"two"),
+        (None, OUTPUT, b"three"),
+        (None, OUTPUT, b"four")
+    ]
+
+
 async def test_errors(harness):
     with pytest.warns(RuntimeWarning, match="rcvbuf limit is") as record:
         async with harness.capture_packets_to(2, sock_len=2 ** 30):
@@ -95,17 +170,28 @@ async def test_errors(harness):
             async with harness.capture_packets_to(2, queue_num=0):
                 pass
 
-    nfq = NetfilterQueue()
-    nfq.bind(1, lambda p: None, sock_len=131072)
+    _, nfq = harness.bind_queue(lambda: None, queue_num=1)
     with pytest.raises(RuntimeError, match="A queue is already bound"):
-        nfq.bind(2, lambda p: None, sock_len=131072)
+        nfq.bind(2, lambda p: None)
+
+    # Test unbinding via __del__
+    nfq = weakref.ref(nfq)
+    for _ in range(4):
+        gc.collect()
+        if nfq() is None:
+            break
+    else:
+        raise RuntimeError("Couldn't trigger garbage collection of NFQ")
 
 
 async def test_unretained(harness):
-    # Capture packets without retaining -> can't access payload
-    async with harness.capture_packets_to(
-        2, trio.MemorySendChannel.send_nowait
-    ) as chan:
+    def cb(chan, pkt):
+        # Can access payload within callback
+        assert pkt.get_payload()[-3:] in (b"one", b"two")
+        chan.send_nowait(pkt)
+
+    # Capture packets without retaining -> can't access payload after cb returns
+    async with harness.capture_packets_to(2, cb) as chan:
         await harness.send(2, b"one", b"two")
         accept = True
         async for p in chan:
@@ -155,53 +241,10 @@ async def test_cb_exception(harness):
         pkt.drop()
 
 
-async def test_cb_exception_during_unbind(harness, capsys):
-    pkt = None
-
-    def cb(channel, p):
-        nonlocal pkt
-        pkt = p
-        raise ValueError("test")
-
-    if sys.version_info >= (3, 8):
-        from _pytest.unraisableexception import catch_unraisable_exception
-    else:
-        from contextlib import contextmanager
-
-        @contextmanager
-        def catch_unraisable_exception():
-            yield
-
-    with catch_unraisable_exception() as unraise, trio.CancelScope() as cscope:
-        async with harness.capture_packets_to(2, cb):
-            # Cancel the task that reads from netfilter:
-            cscope.cancel()
-            with trio.CancelScope(shield=True):
-                await trio.testing.wait_all_tasks_blocked()
-                # Now actually send the packet and wait for the report to appear
-                # (hopefully)
-                await harness.send(2, b"boom boom")
-                await trio.sleep(0.5)
-            # Exiting the block calls unbind() and raises the exception in the cb.
-            # It gets caught and discarded as unraisable.
-
-        if unraise:
-            assert unraise.unraisable
-            assert unraise.unraisable.object == "netfilterqueue callback during unbind"
-            assert unraise.unraisable.exc_type is ValueError
-            assert str(unraise.unraisable.exc_value) == "test"
-
-    if not unraise:
-        assert (
-            "Exception ignored in: 'netfilterqueue callback" in capsys.readouterr().err
-        )
-
-    with pytest.raises(RuntimeError, match="Payload data is no longer available"):
-        pkt.get_payload()
-    with pytest.raises(RuntimeError, match="Parent queue has already been unbound"):
-        pkt.drop()
-
-
+@pytest.mark.skipif(
+    sys.implementation.name == "pypy",
+    reason="pypy does not support PyErr_CheckSignals",
+)
 def test_signal():
     nfq = NetfilterQueue()
     nfq.bind(1, lambda p: None, sock_len=131072)

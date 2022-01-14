@@ -90,13 +90,9 @@ To install from source::
 API
 ===
 
-``NetfilterQueue.COPY_NONE``
-
-``NetfilterQueue.COPY_META``
-
-``NetfilterQueue.COPY_PACKET``
+``NetfilterQueue.COPY_NONE``, ``NetfilterQueue.COPY_META``, ``NetfilterQueue.COPY_PACKET``
     These constants specify how much of the packet should be given to the
-    script- nothing, metadata, or the whole packet.
+    script: nothing, metadata, or the whole packet.
 
 NetfilterQueue objects
 ----------------------
@@ -104,7 +100,7 @@ NetfilterQueue objects
 A NetfilterQueue object represents a single queue. Configure your queue with
 a call to ``bind``, then start receiving packets with a call to ``run``.
 
-``QueueHandler.bind(queue_num, callback[, max_len[, mode[, range[, sock_len]]]])``
+``NetfilterQueue.bind(queue_num, callback, max_len=1024, mode=COPY_PACKET, range=65535, sock_len=...)``
     Create and bind to the queue. ``queue_num`` uniquely identifies this
     queue for the kernel. It must match the ``--queue-num`` in your iptables
     rule, but there is no ordering requirement: it's fine to either ``bind()``
@@ -118,22 +114,23 @@ a call to ``bind``, then start receiving packets with a call to ``run``.
     the source and destination IPs of a IPv4 packet, ``range`` could be 20.
     ``sock_len`` sets the receive socket buffer size.
 
-``QueueHandler.unbind()``
+``NetfilterQueue.unbind()``
     Remove the queue. Packets matched by your iptables rule will be dropped.
 
-``QueueHandler.get_fd()``
+``NetfilterQueue.get_fd()``
     Get the file descriptor of the socket used to receive queued
     packets and send verdicts. If you're using an async event loop,
     you can poll this FD for readability and call ``run(False)`` every
     time data appears on it.
 
-``QueueHandler.run([block])``
+``NetfilterQueue.run(block=True)``
     Send packets to your callback. By default, this method blocks, running
     until an exception is raised (such as by Ctrl+C). Set
-    block=False to process the pending messages without waiting for more.
-    You can get the file descriptor of the socket with the ``get_fd`` method.
+    ``block=False`` to process the pending messages without waiting for more;
+    in conjunction with the ``get_fd`` method, you can use this to integrate
+    with async event loops.
 
-``QueueHandler.run_socket(socket)``
+``NetfilterQueue.run_socket(socket)``
     Send packets to your callback, but use the supplied socket instead of
     recv, so that, for example, gevent can monkeypatch it. You can make a
     socket with ``socket.fromfd(nfqueue.get_fd(), socket.AF_NETLINK, socket.SOCK_RAW)``
@@ -148,6 +145,8 @@ Objects of this type are passed to your callback.
     Return the packet's payload as a bytes object. The returned value
     starts with the IP header. You must call ``retain()`` if you want
     to be able to ``get_payload()`` after your callback has returned.
+    If you have already called ``set_payload()``, then ``get_payload()``
+    returns what you passed to ``set_payload()``.
 
 ``Packet.set_payload(payload)``
     Set the packet payload. Call this before ``accept()`` if you want to
@@ -166,12 +165,46 @@ Objects of this type are passed to your callback.
     rules. ``mark`` is a 32-bit number.
 
 ``Packet.get_mark()``
-    Get the mark already on the packet (either the one you set using
+    Get the mark on the packet (either the one you set using
     ``set_mark()``, or the one it arrived with if you haven't called
     ``set_mark()``).
 
 ``Packet.get_hw()``
-    Return the hardware address as a Python string.
+    Return the source hardware address of the packet as a Python
+    bytestring, or ``None`` if the source hardware address was not
+    captured (packets captured by the ``OUTPUT`` or ``PREROUTING``
+    hooks). For example, on Ethernet the result will be a six-byte
+    MAC address. The destination hardware address is not available
+    because it is determined in the kernel only after packet filtering
+    is complete.
+
+``Packet.get_timestamp()``
+    Return the time at which this packet was received by the kernel,
+    as a floating-point Unix timestamp with microsecond precision
+    (comparable to the result of ``time.time()``, for example).
+    Packets captured by the ``OUTPUT`` or ``POSTROUTING`` hooks
+    do not have a timestamp, and ``get_timestamp()`` will return 0.0
+    for them.
+
+``Packet.id``
+    The identifier assigned to this packet by the kernel. Typically
+    the first packet received by your queue starts at 1 and later ones
+    count up from there.
+
+``Packet.hw_protocol``
+    The link-layer protocol for this packet. For example, IPv4 packets
+    on Ethernet would have this set to the EtherType for IPv4, which is
+    ``0x0800``.
+
+``Packet.mark``
+    The mark that had been assigned to this packet when it was enqueued.
+    Unlike the result of ``get_mark()``, this does not change if you call
+    ``set_mark()``.
+
+``Packet.hook``
+    The netfilter hook (iptables chain, roughly) that diverted this packet
+    into our queue. Values 0 through 4 correspond to PREROUTING, INPUT,
+    FORWARD, OUTPUT, and POSTROUTING respectively.
 
 ``Packet.retain()``
     Allocate a copy of the packet payload for use after the callback
@@ -249,20 +282,39 @@ The fields are:
 Limitations
 ===========
 
-* Compiled with a 4096-byte buffer for packets, so it probably won't work on
-  loopback or Ethernet with jumbo packets. If this is a problem, either lower
-  MTU on your loopback, disable jumbo packets, or get Cython,
-  change ``DEF BufferSize = 4096`` in ``netfilterqueue.pyx``, and rebuild.
-* Full libnetfilter_queue API is not yet implemented:
+* We use a fixed-size 4096-byte buffer for packets, so you are likely
+  to see truncation on loopback and on Ethernet with jumbo packets.
+  If this is a problem, either lower the MTU on your loopback, disable
+  jumbo packets, or get Cython, change ``DEF BufferSize = 4096`` in
+  ``netfilterqueue.pyx``, and rebuild.
 
-    * Omits methods for getting information about the interface a packet has
-      arrived on or is leaving on
-    * Probably other stuff is omitted too
+* Not all information available from libnetfilter_queue is exposed:
+  missing pieces include packet input/output network interface names,
+  checksum offload flags, UID/GID and security context data
+  associated with the packet (if any).
+
+* Not all information available from the kernel is even processed by
+  libnetfilter_queue: missing pieces include additional link-layer
+  header data for some packets (including VLAN tags), connection-tracking
+  state, and incoming packet length (if truncated for queueing).
+
+* We do not expose the libnetfilter_queue interface for changing queue flags.
+  Most of these pertain to other features we don't support (listed above),
+  but there's one that could set the queue to accept (rather than dropping)
+  packets received when it's full.
 
 Source
 ======
 
-https://github.com/kti/python-netfilterqueue
+https://github.com/oremanj/python-netfilterqueue
+
+Authorship
+==========
+
+python-netfilterqueue was originally written by Matthew Fox of
+Kerkhoff Technologies, Inc. Since 2022 it has been maintained by
+Joshua Oreman of Hudson River Trading LLC. Both authors wish to
+thank their employers for their support of open source.
 
 License
 =======

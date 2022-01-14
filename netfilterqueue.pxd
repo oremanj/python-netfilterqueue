@@ -172,7 +172,6 @@ cdef class NetfilterQueue:
     cdef object user_callback # User callback
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue
-    cdef bint unbinding
 
 cdef class Packet:
     cdef NetfilterQueue _queue
@@ -180,6 +179,7 @@ cdef class Packet:
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
     cdef bint _hwaddr_is_set
+    cdef bint _timestamp_is_set
     cdef u_int32_t _given_mark # Mark given to packet
     cdef bytes _given_payload # New payload of packet, or null
     cdef bytes _owned_payload
@@ -197,7 +197,6 @@ cdef class Packet:
     cdef u_int8_t hw_addr[8]
 
     # TODO: implement these
-    #cdef u_int8_t hw_addr[8] # A eui64-formatted address?
     #cdef readonly u_int32_t nfmark
     #cdef readonly u_int32_t indev
     #cdef readonly u_int32_t physindev
