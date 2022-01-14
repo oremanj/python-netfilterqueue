@@ -193,13 +193,47 @@ cdef class Packet:
 
 cdef class NetfilterQueue:
     """Handle a single numbered queue."""
-    def __cinit__(self, *args, **kwargs):
-        cdef u_int16_t af # Address family
-        af = kwargs.get("af", PF_INET)
+    def __cinit__(self, *, u_int16_t af = PF_INET, int sockfd = -1):
+        cdef nfnl_handle *nlh = NULL
+        try:
+            if sockfd >= 0:
+                # This is a hack to use the given Netlink socket instead
+                # of the one allocated by nfq_open(). Intended use case:
+                # the given socket was opened in a different network
+                # namespace, and you want to monitor traffic in that
+                # namespace from this process running outside of it.
+                # Call socket(AF_NETLINK, SOCK_RAW, /*NETLINK_NETFILTER*/ 12)
+                # in the other namespace and pass that fd here (via Unix
+                # domain socket or similar).
+                nlh = nfnl_open()
+                if nlh == NULL:
+                    raise OSError(errno, "Failed to open nfnetlink handle")
 
-        self.h = nfq_open()
-        if self.h == NULL:
-            raise OSError("Failed to open NFQueue.")
+                # At this point nfnl_get_fd(nlh) is a new netlink socket
+                # and has been bound to an automatically chosen port id.
+                # This dup2 will close it, freeing up that address.
+                if dup2(sockfd, nfnl_fd(nlh)) < 0:
+                    raise OSError(errno, "dup2 failed")
+
+                # Opening the netfilterqueue subsystem will rebind
+                # the socket, using the same portid from the old socket,
+                # which is hopefully now free. An alternative approach,
+                # theoretically more robust against concurrent binds,
+                # would be to autobind the new socket and write the chosen
+                # address to nlh->local. nlh is an opaque type so this
+                # would need to be done using memcpy (local starts
+                # 4 bytes into the structure); let's avoid that unless
+                # we really need it.
+                self.h = nfq_open_nfnl(nlh)
+            else:
+                self.h = nfq_open()
+            if self.h == NULL:
+                raise OSError(errno, "Failed to open NFQueue.")
+        except:
+            if nlh != NULL:
+                nfnl_close(nlh)
+            raise
+
         nfq_unbind_pf(self.h, af) # This does NOT kick out previous queues
         if nfq_bind_pf(self.h, af) < 0:
             raise OSError("Failed to bind family %s. Are you root?" % af)

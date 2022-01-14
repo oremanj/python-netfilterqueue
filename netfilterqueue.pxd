@@ -1,7 +1,10 @@
-cdef extern from "sys/types.h":
+cdef extern from "<sys/types.h>":
     ctypedef unsigned char u_int8_t
     ctypedef unsigned short int u_int16_t
     ctypedef unsigned int u_int32_t
+
+cdef extern from "<unistd.h>":
+    int dup2(int oldfd, int newfd)
 
 cdef extern from "<errno.h>":
     int errno
@@ -13,7 +16,7 @@ cdef enum:
     EWOULDBLOCK = EAGAIN
     ENOBUFS = 105         # No buffer space available
 
-cdef extern from "netinet/ip.h":
+cdef extern from "<netinet/ip.h>":
     struct iphdr:
         u_int8_t tos
         u_int16_t tot_len
@@ -60,7 +63,7 @@ cdef extern from "Python.h":
     object PyBytes_FromStringAndSize(char *s, Py_ssize_t len)
     object PyString_FromStringAndSize(char *s, Py_ssize_t len)
 
-cdef extern from "sys/time.h":
+cdef extern from "<sys/time.h>":
     ctypedef long time_t
     struct timeval:
         time_t tv_sec
@@ -68,7 +71,7 @@ cdef extern from "sys/time.h":
     struct timezone:
         pass
 
-cdef extern from "netinet/in.h":
+cdef extern from "<netinet/in.h>":
     u_int32_t ntohl (u_int32_t __netlong) nogil
     u_int16_t ntohs (u_int16_t __netshort) nogil
     u_int32_t htonl (u_int32_t __hostlong) nogil
@@ -83,6 +86,9 @@ cdef extern from "libnfnetlink/linux_nfnetlink.h":
 cdef extern from "libnfnetlink/libnfnetlink.h":
     struct nfnl_handle:
         pass
+    nfnl_handle *nfnl_open()
+    void nfnl_close(nfnl_handle *h)
+    int nfnl_fd(nfnl_handle *h)
     unsigned int nfnl_rcvbufsiz(nfnl_handle *h, unsigned int size)
 
 cdef extern from "libnetfilter_queue/linux_nfnetlink_queue.h":
@@ -106,6 +112,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
         u_int8_t hw_addr[8]
 
     nfq_handle *nfq_open()
+    nfq_handle *nfq_open_nfnl(nfnl_handle *h)
     int nfq_close(nfq_handle *h)
 
     int nfq_bind_pf(nfq_handle *h, u_int16_t pf)
@@ -153,8 +160,9 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
 cdef enum: #  Protocol families, same as address families.
     PF_INET = 2
     PF_INET6 = 10
+    PF_NETLINK = 16
 
-cdef extern from "sys/socket.h":
+cdef extern from "<sys/socket.h>":
     ssize_t recv(int __fd, void *__buf, size_t __n, int __flags) nogil
     int MSG_DONTWAIT
 

@@ -4,6 +4,8 @@ v1.0.0, unreleased
     Raise an error if a packet verdict is set after its parent queue is closed
     set_payload() now affects the result of later get_payload()
     Handle signals received when run() is blocked in recv()
+    Accept packets in COPY_META mode, only failing on an attempt to access the payload
+    Add a parameter NetfilterQueue(sockfd=N) that uses an already-opened Netlink socket
 
 v0.9.0, 12 Jan 2021
     Improve usability when Packet objects are retained past the callback
