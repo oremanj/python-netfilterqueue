@@ -2,9 +2,6 @@ import socket
 from enum import IntEnum
 from typing import Callable, Dict, Optional, Tuple
 
-__version__: str
-VERSION: Tuple[int, ...]
-
 COPY_NONE: int
 COPY_META: int
 COPY_PACKET: int
