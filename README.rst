@@ -238,6 +238,31 @@ until they've been given a verdict (accept, drop, or repeat). Also, the
 kernel stores the enqueued packets in a linked list, so keeping lots of packets
 outstanding is likely to adversely impact performance.
 
+Monitoring a different network namespace
+----------------------------------------
+
+If you are using Linux network namespaces (``man 7
+network_namespaces``) in some kind of containerization system, all of
+the Netfilter queue state is kept per-namespace; queue 1 in namespace
+X is not the same as queue 1 in namespace Y. NetfilterQueue will
+ordinarily pass you the traffic for the network namespace you're a
+part of. If you want to monitor a different one, you can do so with a
+bit of trickery and cooperation from a process in that
+namespace; this section describes how.
+
+You'll need to arrange for a process in the network namespace you want
+to monitor to call ``socket(AF_NETLINK, SOCK_RAW, 12)`` and pass you
+the resulting file descriptor using something like
+``socket.send_fds()`` over a Unix domain socket. (12 is
+``NETLINK_NETFILTER``, a constant which is not exposed by the Python
+``socket`` module.)  Once you've received that file descriptor in your
+process, you can create a NetfilterQueue object using the special
+constructor ``NetfilterQueue(sockfd=N)`` where N is the file
+descriptor you received. Because the socket was originally created
+in the other network namespace, the kernel treats it as part of that
+namespace, and you can use it to access that namespace even though it's
+not the namespace you're in yourself.
+
 Usage
 =====
 

@@ -1,12 +1,13 @@
 import gc
 import struct
-import trio
-import trio.testing
+import os
 import pytest
 import signal
 import socket
 import sys
 import time
+import trio
+import trio.testing
 import weakref
 
 from netfilterqueue import NetfilterQueue, COPY_META
@@ -261,5 +262,61 @@ def test_signal():
             nfq.run()
         assert any("NetfilterQueue.run" in line.name for line in exc_info.traceback)
     finally:
+        nfq.unbind()
         signal.setitimer(signal.ITIMER_REAL, *old_timer)
         signal.signal(signal.SIGALRM, old_handler)
+
+
+async def test_external_fd(harness):
+    child_prog = """
+import os, sys, unshare
+from netfilterqueue import NetfilterQueue
+unshare.unshare(unshare.CLONE_NEWNET)
+nfq = NetfilterQueue(sockfd=int(sys.argv[1]))
+def cb(pkt):
+    pkt.accept()
+    sys.exit(pkt.get_payload()[28:].decode("ascii"))
+nfq.bind(1, cb, sock_len=131072)
+os.write(1, b"ok\\n")
+try:
+    nfq.run()
+finally:
+    nfq.unbind()
+"""
+    async with trio.open_nursery() as nursery:
+
+        async def monitor_in_child(task_status):
+            with trio.fail_after(5):
+                r, w = os.pipe()
+                # 12 is NETLINK_NETFILTER family
+                nlsock = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW, 12)
+
+                @nursery.start_soon
+                async def wait_started():
+                    await trio.lowlevel.wait_readable(r)
+                    assert b"ok\n" == os.read(r, 16)
+                    nlsock.close()
+                    os.close(w)
+                    os.close(r)
+                    task_status.started()
+
+                result = await trio.run_process(
+                    [sys.executable, "-c", child_prog, str(nlsock.fileno())],
+                    stdout=w,
+                    capture_stderr=True,
+                    check=False,
+                    pass_fds=(nlsock.fileno(),),
+                )
+            assert result.stderr == b"this is a test\n"
+
+        await nursery.start(monitor_in_child)
+        async with harness.enqueue_packets_to(2, queue_num=1):
+            await harness.send(2, b"this is a test")
+            await harness.expect(2, b"this is a test")
+
+    with pytest.raises(OSError, match="dup2 failed"):
+        NetfilterQueue(sockfd=1000)
+
+    with pytest.raises(OSError, match="Failed to open NFQueue"):
+        with open("/dev/null") as fp:
+            NetfilterQueue(sockfd=fp.fileno())
