@@ -3,11 +3,11 @@ from setuptools import setup, Extension
 
 VERSION = "0.9.0"  # Remember to change CHANGES.txt and netfilterqueue.pyx when version changes.
 
+setup_requires = []
 try:
     # Use Cython
     from Cython.Build import cythonize
 
-    setup_requires = []
     ext_modules = cythonize(
         Extension(
             "netfilterqueue", ["netfilterqueue.pyx"], libraries=["netfilter_queue"]

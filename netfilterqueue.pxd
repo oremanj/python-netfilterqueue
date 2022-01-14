@@ -169,6 +169,7 @@ cdef enum:
     NF_MAX_VERDICT = NF_STOP
 
 cdef class NetfilterQueue:
+    cdef object __weakref__
     cdef object user_callback # User callback
     cdef nfq_handle *h # Handle to NFQueue library
     cdef nfq_q_handle *qh # A handle to the queue

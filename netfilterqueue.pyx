@@ -82,7 +82,9 @@ cdef class Packet:
 
         self.payload_len = nfq_get_payload(nfa, &self.payload)
         if self.payload_len < 0:
-            raise OSError("Failed to get payload of packet.")
+            # Probably using a mode that doesn't provide the payload
+            self.payload = NULL
+            self.payload_len = 0
 
         nfq_get_timestamp(nfa, &self.timestamp)
         self.mark = nfq_get_nfmark(nfa)
@@ -142,6 +144,10 @@ cdef class Packet:
             return self._owned_payload
         elif self.payload != NULL:
             return self.payload[:self.payload_len]
+        elif self.payload_len == 0:
+            raise RuntimeError(
+                "Packet has no payload -- perhaps you're using COPY_META mode?"
+            )
         else:
             raise RuntimeError(
                 "Payload data is no longer available. You must call "
@@ -191,7 +197,6 @@ cdef class NetfilterQueue:
         cdef u_int16_t af # Address family
         af = kwargs.get("af", PF_INET)
 
-        self.unbinding = False
         self.h = nfq_open()
         if self.h == NULL:
             raise OSError("Failed to open NFQueue.")

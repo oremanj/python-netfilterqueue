@@ -9,7 +9,7 @@ import sys
 import time
 import weakref
 
-from netfilterqueue import NetfilterQueue
+from netfilterqueue import NetfilterQueue, COPY_META
 
 
 async def test_comms_without_queue(harness):
@@ -94,6 +94,8 @@ async def test_mark_repeat(harness):
 
     def cb(chan, pkt):
         nonlocal counter
+        with pytest.raises(RuntimeError, match="Packet has no payload"):
+            pkt.get_payload()
         assert pkt.get_mark() == counter
         timestamps.append(pkt.get_timestamp())
         if counter < 5:
@@ -104,7 +106,7 @@ async def test_mark_repeat(harness):
         else:
             pkt.accept()
 
-    async with harness.capture_packets_to(2, cb):
+    async with harness.capture_packets_to(2, cb, mode=COPY_META):
         t0 = time.time()
         await harness.send(2, b"testing")
         await harness.expect(2, b"testing")
@@ -155,7 +157,7 @@ async def test_hwaddr(harness):
         (mac1, FORWARD, b"one"),
         (mac1, FORWARD, b"two"),
         (None, OUTPUT, b"three"),
-        (None, OUTPUT, b"four")
+        (None, OUTPUT, b"four"),
     ]
 
 

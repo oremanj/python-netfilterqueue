@@ -191,7 +191,8 @@ class Harness:
             # Tell each peer about the other one's port
             for idx in (1, 2):
                 self.dest_addr[idx] = (
-                    PEER_IP[idx], int(await self._received[idx].receive())
+                    PEER_IP[idx],
+                    int(await self._received[idx].receive()),
                 )
                 await self._conn[3 - idx].send(b"%d" % self.dest_addr[idx][1])
             yield
