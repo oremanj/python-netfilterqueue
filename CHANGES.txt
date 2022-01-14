@@ -1,4 +1,4 @@
-v1.0.0, unreleased
+v1.0.0, 14 Jan 2022
     Propagate exceptions raised by the user's packet callback
     Avoid calls to the packet callback during queue unbinding
     Raise an error if a packet verdict is set after its parent queue is closed
@@ -9,7 +9,7 @@ v1.0.0, unreleased
     Add type hints
     Remove the Packet.payload attribute; it was never safe (treated as a char* but not NUL-terminated) nor documented, but was exposed in the API (perhaps inadvertently).
 
-v0.9.0, 12 Jan 2021
+v0.9.0, 12 Jan 2022
     Improve usability when Packet objects are retained past the callback
     Add Packet.retain() to save the packet contents in such cases
     Eliminate warnings during build on py3

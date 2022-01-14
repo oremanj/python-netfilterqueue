@@ -1,3 +1,11 @@
+.. image:: https://img.shields.io/pypi/v/netfilterqueue.svg
+   :target: https://pypi.org/project/netfilterqueue
+   :alt: Latest PyPI version
+
+.. image:: https://github.com/oremanj/python-netfilterqueue/actions/workflows/ci.yml/badge.svg?branch=master
+   :target: https://github.com/oremanj/python-netfilterqueue/actions?query=branch%3Amaster
+   :alt: Automated test status
+
 ==============
 NetfilterQueue
 ==============
@@ -8,6 +16,9 @@ or given a mark.
 
 libnetfilter_queue (the netfilter library, not this module) is part of the
 `Netfilter project <http://netfilter.org/projects/libnetfilter_queue/>`_.
+
+The current version of NetfilterQueue requires Python 3.6 or later.
+The last version with support for Python 2.7 was 0.9.0.
 
 Example
 =======
