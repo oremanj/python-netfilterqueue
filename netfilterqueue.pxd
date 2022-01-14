@@ -8,6 +8,7 @@ cdef extern from "<errno.h>":
 
 # dummy defines from asm-generic/errno.h:
 cdef enum:
+    EINTR = 4
     EAGAIN = 11           # Try again
     EWOULDBLOCK = EAGAIN
     ENOBUFS = 105         # No buffer space available
@@ -115,15 +116,17 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
                                     u_int16_t num,
                                     nfq_callback *cb,
                                     void *data)
-    int nfq_destroy_queue(nfq_q_handle *qh)
 
-    int nfq_handle_packet(nfq_handle *h, char *buf, int len)
-
-    int nfq_set_mode(nfq_q_handle *qh,
-                       u_int8_t mode, unsigned int len)
-
-    q_set_queue_maxlen(nfq_q_handle *qh,
-                     u_int32_t queuelen)
+    # Any function that parses Netlink replies might invoke the user
+    # callback and thus might need to propagate a Python exception.
+    # This includes nfq_handle_packet but is not limited to that --
+    # other functions might send a query, read until they get the reply,
+    # and find a packet notification before the reply which they then
+    # must deal with.
+    int nfq_destroy_queue(nfq_q_handle *qh) except? -1
+    int nfq_handle_packet(nfq_handle *h, char *buf, int len) except? -1
+    int nfq_set_mode(nfq_q_handle *qh, u_int8_t mode, unsigned int len) except? -1
+    int nfq_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen) except? -1
 
     int nfq_set_verdict(nfq_q_handle *qh,
                           u_int32_t id,
@@ -137,7 +140,6 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
                             u_int32_t mark,
                             u_int32_t datalen,
                             unsigned char *buf) nogil
-    int nfq_set_queue_maxlen(nfq_q_handle *qh, u_int32_t queuelen)
 
     int nfq_fd(nfq_handle *h)
     nfqnl_msg_packet_hdr *nfq_get_msg_packet_hdr(nfq_data *nfad)
@@ -146,7 +148,7 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
-    
+
 # Dummy defines from linux/socket.h:
 cdef enum: #  Protocol families, same as address families.
     PF_INET = 2
@@ -166,12 +168,19 @@ cdef enum:
     NF_STOP
     NF_MAX_VERDICT = NF_STOP
 
+cdef class NetfilterQueue:
+    cdef object __weakref__
+    cdef object user_callback # User callback
+    cdef nfq_handle *h # Handle to NFQueue library
+    cdef nfq_q_handle *qh # A handle to the queue
+
 cdef class Packet:
-    cdef nfq_q_handle *_qh
+    cdef NetfilterQueue _queue
     cdef bint _verdict_is_set # True if verdict has been issued,
         # false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
     cdef bint _hwaddr_is_set
+    cdef bint _timestamp_is_set
     cdef u_int32_t _given_mark # Mark given to packet
     cdef bytes _given_payload # New payload of packet, or null
     cdef bytes _owned_payload
@@ -189,16 +198,15 @@ cdef class Packet:
     cdef u_int8_t hw_addr[8]
 
     # TODO: implement these
-    #cdef u_int8_t hw_addr[8] # A eui64-formatted address?
     #cdef readonly u_int32_t nfmark
     #cdef readonly u_int32_t indev
     #cdef readonly u_int32_t physindev
     #cdef readonly u_int32_t outdev
     #cdef readonly u_int32_t physoutdev
 
-    cdef set_nfq_data(self, nfq_q_handle *qh, nfq_data *nfa)
+    cdef set_nfq_data(self, NetfilterQueue queue, nfq_data *nfa)
     cdef drop_refs(self)
-    cdef void verdict(self, u_int8_t verdict)
+    cdef int verdict(self, u_int8_t verdict) except -1
     cpdef Py_ssize_t get_payload_len(self)
     cpdef double get_timestamp(self)
     cpdef bytes get_payload(self)
@@ -209,11 +217,3 @@ cdef class Packet:
     cpdef accept(self)
     cpdef drop(self)
     cpdef repeat(self)
-
-cdef class NetfilterQueue:
-    cdef object user_callback # User callback
-    cdef nfq_handle *h # Handle to NFQueue library
-    cdef nfq_q_handle *qh # A handle to the queue
-    cdef u_int16_t af # Address family
-    cdef packet_copy_size # Amount of packet metadata + data copied to buffer
-

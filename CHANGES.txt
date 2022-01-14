@@ -1,3 +1,10 @@
+v1.0.0, unreleased
+    Propagate exceptions raised by the user's packet callback
+    Warn about exceptions raised by the packet callback during queue unbinding
+    Raise an error if a packet verdict is set after its parent queue is closed
+    set_payload() now affects the result of later get_payload()
+    Handle signals received when run() is blocked in recv()
+
 v0.9.0, 12 Jan 2021
     Improve usability when Packet objects are retained past the callback
     Add Packet.retain() to save the packet contents in such cases

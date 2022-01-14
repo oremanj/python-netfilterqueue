@@ -24,22 +24,26 @@ DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
 
-cdef extern from *:
-    """
-    #if PY_MAJOR_VERSION < 3
-    #define PyBytes_FromStringAndSize PyString_FromStringAndSize
-    #endif
-    """
+from cpython.exc cimport PyErr_CheckSignals
 
+# A negative return value from this callback will stop processing and
+# make nfq_handle_packet return -1, so we use that as the error flag.
 cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
-                         nfq_data *nfa, void *data) with gil:
+                         nfq_data *nfa, void *data) except -1 with gil:
     """Create a Packet and pass it to appropriate callback."""
     cdef NetfilterQueue nfqueue = <NetfilterQueue>data
     cdef object user_callback = <object>nfqueue.user_callback
+    if user_callback is None:
+        # Queue is being unbound; we can't send a verdict at this point
+        # so just ignore the packet. The kernel will drop it once we
+        # unbind.
+        return 1
     packet = Packet()
-    packet.set_nfq_data(qh, nfa)
-    user_callback(packet)
-    packet.drop_refs()
+    packet.set_nfq_data(nfqueue, nfa)
+    try:
+        user_callback(packet)
+    finally:
+        packet.drop_refs()
     return 1
 
 cdef class Packet:
@@ -54,7 +58,7 @@ cdef class Packet:
         protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
-    cdef set_nfq_data(self, nfq_q_handle *qh, nfq_data *nfa):
+    cdef set_nfq_data(self, NetfilterQueue queue, nfq_data *nfa):
         """
         Assign a packet from NFQ to this object. Parse the header and load
         local values.
@@ -63,7 +67,7 @@ cdef class Packet:
         cdef nfqnl_msg_packet_hdr *hdr
 
         hdr = nfq_get_msg_packet_hdr(nfa)
-        self._qh = qh
+        self._queue = queue
         self.id = ntohl(hdr.packet_id)
         self.hw_protocol = ntohs(hdr.hw_protocol)
         self.hook = hdr.hook
@@ -78,7 +82,9 @@ cdef class Packet:
 
         self.payload_len = nfq_get_payload(nfa, &self.payload)
         if self.payload_len < 0:
-            raise OSError("Failed to get payload of packet.")
+            # Probably using a mode that doesn't provide the payload
+            self.payload = NULL
+            self.payload_len = 0
 
         nfq_get_timestamp(nfa, &self.timestamp)
         self.mark = nfq_get_nfmark(nfa)
@@ -86,14 +92,16 @@ cdef class Packet:
     cdef drop_refs(self):
         """
         Called at the end of the user_callback, when the storage passed to
-        set_nfq_data() is about to be deallocated.
+        set_nfq_data() is about to be reused.
         """
         self.payload = NULL
 
-    cdef void verdict(self, u_int8_t verdict):
+    cdef int verdict(self, u_int8_t verdict) except -1:
         """Call appropriate set_verdict... function on packet."""
         if self._verdict_is_set:
-            raise RuntimeWarning("Verdict already given for this packet.")
+            raise RuntimeError("Verdict already given for this packet")
+        if self._queue.qh == NULL:
+            raise RuntimeError("Parent queue has already been unbound")
 
         cdef u_int32_t modified_payload_len = 0
         cdef unsigned char *modified_payload = NULL
@@ -102,7 +110,7 @@ cdef class Packet:
             modified_payload = self._given_payload
         if self._mark_is_set:
             nfq_set_verdict2(
-                self._qh,
+                self._queue.qh,
                 self.id,
                 verdict,
                 self._given_mark,
@@ -110,7 +118,7 @@ cdef class Packet:
                 modified_payload)
         else:
             nfq_set_verdict(
-                self._qh,
+                self._queue.qh,
                 self.id,
                 verdict,
                 modified_payload_len,
@@ -119,17 +127,27 @@ cdef class Packet:
         self._verdict_is_set = True
 
     def get_hw(self):
-        """Return the hardware address as Python string."""
+        """Return the packet's source MAC address as a Python bytestring, or
+        None if it's not available.
+        """
+        if not self._hwaddr_is_set:
+            return None
         cdef object py_string
         py_string = PyBytes_FromStringAndSize(<char*>self.hw_addr, 8)
         return py_string
 
     cpdef bytes get_payload(self):
         """Return payload as Python string."""
-        if self._owned_payload:
+        if self._given_payload:
+            return self._given_payload
+        elif self._owned_payload:
             return self._owned_payload
         elif self.payload != NULL:
             return self.payload[:self.payload_len]
+        elif self.payload_len == 0:
+            raise RuntimeError(
+                "Packet has no payload -- perhaps you're using COPY_META mode?"
+            )
         else:
             raise RuntimeError(
                 "Payload data is no longer available. You must call "
@@ -172,25 +190,31 @@ cdef class Packet:
         """Repeat the packet."""
         self.verdict(NF_REPEAT)
 
+
 cdef class NetfilterQueue:
     """Handle a single numbered queue."""
     def __cinit__(self, *args, **kwargs):
-        self.af = kwargs.get("af", PF_INET)
+        cdef u_int16_t af # Address family
+        af = kwargs.get("af", PF_INET)
 
         self.h = nfq_open()
         if self.h == NULL:
             raise OSError("Failed to open NFQueue.")
-        nfq_unbind_pf(self.h, self.af) # This does NOT kick out previous
-            # running queues
-        if nfq_bind_pf(self.h, self.af) < 0:
-            raise OSError("Failed to bind family %s. Are you root?" % self.af)
+        nfq_unbind_pf(self.h, af) # This does NOT kick out previous queues
+        if nfq_bind_pf(self.h, af) < 0:
+            raise OSError("Failed to bind family %s. Are you root?" % af)
+
+    def __del__(self):
+        # unbind() can result in invocations of global_callback, so we
+        # must do it in __del__ (when this is still a valid
+        # NetfilterQueue object) rather than __dealloc__
+        self.unbind()
 
     def __dealloc__(self):
-        if self.qh != NULL:
-            nfq_destroy_queue(self.qh)
         # Don't call nfq_unbind_pf unless you want to disconnect any other
         # processes using this libnetfilter_queue on this protocol family!
-        nfq_close(self.h)
+        if self.h != NULL:
+            nfq_close(self.h)
 
     def bind(self, int queue_num, object user_callback,
                 u_int32_t max_len=DEFAULT_MAX_QUEUELEN,
@@ -231,6 +255,7 @@ cdef class NetfilterQueue:
 
     def unbind(self):
         """Destroy the queue."""
+        self.user_callback = None
         if self.qh != NULL:
             nfq_destroy_queue(self.qh)
         self.qh = NULL
@@ -251,11 +276,17 @@ cdef class NetfilterQueue:
         while True:
             with nogil:
                 rv = recv(fd, buf, sizeof(buf), recv_flags)
-            if (rv >= 0):
-                nfq_handle_packet(self.h, buf, rv)
-            else:
-                if errno != ENOBUFS:
+            if rv < 0:
+                if errno == EAGAIN:
                     break
+                if errno == ENOBUFS:
+                    # Kernel is letting us know we dropped a packet
+                    continue
+                if errno == EINTR:
+                    PyErr_CheckSignals()
+                    continue
+                raise OSError(errno, "recv failed")
+            nfq_handle_packet(self.h, buf, rv)
 
     def run_socket(self, s):
         """Accept packets using socket.recv so that, for example, gevent can monkeypatch it."""
@@ -264,11 +295,6 @@ cdef class NetfilterQueue:
         while True:
             try:
                 buf = s.recv(BufferSize)
-                rv = len(buf)
-                if rv >= 0:
-                    nfq_handle_packet(self.h, buf, rv)
-                else:
-                    break
             except socket.error as e:
                 err = e.args[0]
                 if err == ENOBUFS:
@@ -280,6 +306,8 @@ cdef class NetfilterQueue:
                 else:
                     # This is bad. Let the caller handle it.
                     raise e
+            else:
+                nfq_handle_packet(self.h, buf, len(buf))
 
 PROTOCOLS = {
     0: "HOPOPT",

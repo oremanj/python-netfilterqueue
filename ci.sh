@@ -13,12 +13,6 @@ python setup.py sdist --formats=zip
 pip uninstall -y cython
 pip install dist/*.zip
 
-if python --version 2>&1 | fgrep -q "Python 2.7"; then
-    # The testsuite doesn't run on 2.7, so do just a basic smoke test.
-    unshare -Urn python -c "from netfilterqueue import NetfilterQueue as NFQ; NFQ()"
-    exit $?
-fi
-
 pip install -Ur test-requirements.txt
 
 if [ "$CHECK_LINT" = "1" ]; then
