@@ -52,6 +52,7 @@ setup(
     packages=["netfilterqueue"],
     ext_modules=ext_modules,
     include_package_data=True,
+    exclude_package_data={"netfilterqueue": ["*.c"]},
     setup_requires=setup_requires,
     python_requires=">=3.6",
     classifiers=[
