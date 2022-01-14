@@ -5,3 +5,4 @@ pytest-trio
 async_generator
 black
 platformdirs <= 2.4.0  # needed by black; 2.4.1+ don't support py3.6
+mypy; implementation_name == "cpython"

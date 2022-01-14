@@ -1,7 +1,7 @@
 import os, sys
 from setuptools import setup, Extension
 
-VERSION = "0.9.0"  # Remember to change CHANGES.txt and netfilterqueue.pyx when version changes.
+exec(open("netfilterqueue/_version.py", encoding="utf-8").read())
 
 setup_requires = []
 try:
@@ -10,7 +10,9 @@ try:
 
     ext_modules = cythonize(
         Extension(
-            "netfilterqueue", ["netfilterqueue.pyx"], libraries=["netfilter_queue"]
+            "netfilterqueue.__init__",
+            ["netfilterqueue/__init__.pyx"],
+            libraries=["netfilter_queue"],
         ),
         compiler_directives={"language_level": "3str"},
     )
@@ -21,7 +23,7 @@ except ImportError:
         # setup_requires below.
         setup_requires = ["cython"]
     elif not os.path.exists(
-        os.path.join(os.path.dirname(__file__), "netfilterqueue.c")
+        os.path.join(os.path.dirname(__file__), "netfilterqueue/__init__.c")
     ):
         sys.stderr.write(
             "You must have Cython installed (`pip install cython`) to build this "
@@ -31,21 +33,27 @@ except ImportError:
         )
         sys.exit(1)
     ext_modules = [
-        Extension("netfilterqueue", ["netfilterqueue.c"], libraries=["netfilter_queue"])
+        Extension(
+            "netfilterqueue.__init__",
+            ["netfilterqueue/__init__.c"],
+            libraries=["netfilter_queue"],
+        )
     ]
 
 setup(
-    ext_modules=ext_modules,
-    setup_requires=setup_requires,
-    python_requires=">=3.6",
     name="NetfilterQueue",
-    version=VERSION,
+    version=__version__,
     license="MIT",
     author="Matthew Fox",
     author_email="matt@tansen.ca",
     url="https://github.com/oremanj/python-netfilterqueue",
     description="Python bindings for libnetfilter_queue",
-    long_description=open("README.rst").read(),
+    long_description=open("README.rst", encoding="utf-8").read(),
+    packages=["netfilterqueue"],
+    ext_modules=ext_modules,
+    include_package_data=True,
+    setup_requires=setup_requires,
+    python_requires=">=3.6",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "License :: OSI Approved :: MIT License",

@@ -22,8 +22,12 @@ idna==3.3
     # via trio
 iniconfig==1.1.1
     # via pytest
+mypy==0.931 ; implementation_name == "cpython"
+    # via -r test-requirements.in
 mypy-extensions==0.4.3
-    # via black
+    # via
+    #   black
+    #   mypy
 outcome==1.1.0
     # via
     #   pytest-trio
@@ -57,10 +61,14 @@ sortedcontainers==2.4.0
 toml==0.10.2
     # via pytest
 tomli==1.2.3
-    # via black
+    # via
+    #   black
+    #   mypy
 trio==0.19.0
     # via
     #   -r test-requirements.in
     #   pytest-trio
 typing-extensions==4.0.1
-    # via black
+    # via
+    #   black
+    #   mypy

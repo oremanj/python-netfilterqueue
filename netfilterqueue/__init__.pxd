@@ -201,7 +201,7 @@ cdef class Packet:
 
     # Packet details:
     cdef Py_ssize_t payload_len
-    cdef readonly unsigned char *payload
+    cdef unsigned char *payload
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
 

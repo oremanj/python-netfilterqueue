@@ -5,7 +5,6 @@ function.
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
 """
-VERSION = (0, 9, 0)
 
 # Constants for module users
 COPY_NONE = 0
@@ -23,6 +22,10 @@ DEF SockOverhead = 760+20
 DEF SockCopySize = MaxCopySize + SockOverhead
 # Socket queue should hold max number of packets of copysize bytes
 DEF SockRcvSize = DEFAULT_MAX_QUEUELEN * SockCopySize // 2
+
+__package__ = "netfilterqueue"
+
+from ._version import __version__, VERSION
 
 from cpython.exc cimport PyErr_CheckSignals
 
