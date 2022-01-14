@@ -138,9 +138,9 @@ async def test_hwaddr(harness):
                 await harness.send(2, b"one", b"two")
                 await harness.expect(2, b"one", b"two")
             async with harness.enqueue_packets_to(2, queue_num, forwarded=False):
-                sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                for payload in (b"three", b"four"):
-                    sock.sendto(payload, harness.dest_addr[2])
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                    for payload in (b"three", b"four"):
+                        sock.sendto(payload, harness.dest_addr[2])
                 with trio.fail_after(1):
                     while len(hwaddrs) < 4:
                         await trio.sleep(0.1)
