@@ -284,6 +284,7 @@ finally:
     nfq.unbind()
 """
     async with trio.open_nursery() as nursery:
+
         async def monitor_in_child(task_status):
             with trio.fail_after(5):
                 r, w = os.pipe()
