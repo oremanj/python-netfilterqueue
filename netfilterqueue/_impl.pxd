@@ -154,6 +154,8 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
     int nfq_get_nfmark (nfq_data *nfad)
+    u_int8_t nfq_get_indev(nfq_data *nfad)
+    u_int8_t nfq_get_outdev(nfq_data *nfad)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
 
 # Dummy defines from linux/socket.h:
@@ -193,6 +195,8 @@ cdef class Packet:
     cdef bytes _given_payload # New payload of packet, or null
     cdef bytes _owned_payload
 
+    cdef nfq_data *_nfa
+
     # From NFQ packet header:
     cdef readonly u_int32_t id
     cdef readonly u_int16_t hw_protocol
@@ -215,6 +219,8 @@ cdef class Packet:
     cdef set_nfq_data(self, NetfilterQueue queue, nfq_data *nfa)
     cdef drop_refs(self)
     cdef int verdict(self, u_int8_t verdict) except -1
+    cpdef get_indev(self, bint name=*)
+    cpdef get_outdev(self, bint name=*)
     cpdef Py_ssize_t get_payload_len(self)
     cpdef double get_timestamp(self)
     cpdef bytes get_payload(self)
