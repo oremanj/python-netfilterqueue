@@ -4,9 +4,16 @@ function.
 
 Copyright: (c) 2011, Kerkhoff Technologies Inc.
 License: MIT; see LICENSE.txt
+
+Expanded features and performance improvements from downstream development
+of DNXFIREWALL.
+ - DOWRIGHT @ Wright Network Solutions, LLC.
 """
 
 # Constants for module users
+import Cython
+import socket
+
 COPY_NONE = 0
 COPY_META = 1
 COPY_PACKET = 2
@@ -41,7 +48,7 @@ cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
         # so just ignore the packet. The kernel will drop it once we
         # unbind.
         return 1
-    packet = Packet()
+    packet = Packet.__new__(Packet)
     packet.set_nfq_data(nfqueue, nfa)
     try:
         user_callback(packet)
@@ -49,6 +56,7 @@ cdef int global_callback(nfq_q_handle *qh, nfgenmsg *nfmsg,
         packet.drop_refs()
     return 1
 
+@Cython.freelist(8)
 cdef class Packet:
     """A packet received from NetfilterQueue."""
     def __cinit__(self):
@@ -68,6 +76,8 @@ cdef class Packet:
         """
         cdef nfqnl_msg_packet_hw *hw
         cdef nfqnl_msg_packet_hdr *hdr
+
+        self._nfa = nfa
 
         hdr = nfq_get_msg_packet_hdr(nfa)
         self._queue = queue
@@ -128,6 +138,46 @@ cdef class Packet:
                 modified_payload)
 
         self._verdict_is_set = True
+
+    cpdef get_inint(self, bint name=False):
+        """Returns the index of the inbound interface of the packet. If the packet 
+        sourced from localhost or the input interface is not known, 0/unknown will
+        be returned respectively.
+
+        if name=True, socket.if_indextoname() will be returned.
+        """
+        cdef object in_interface_name
+
+        in_interface = nfq_get_indev(self._nfa)
+        if not name:
+            return in_interface
+
+        try:
+            in_interface_name = socket.if_indextoname(in_interface)
+        except OSError:
+            in_interface_name = 'unknown'
+
+        return in_interface_name
+
+    cpdef get_outint(self, bint name=False):
+        """Returns the index of the outbound interface of the packet. If the packet 
+        sourced from localhost or the input interface is not known, 0/unknown will
+        be returned respectively.
+
+        if name=True, socket.if_indextoname() will be returned.
+        """
+        cdef object out_interface_name
+
+        out_interface = nfq_get_outdev(self._nfa)
+        if not name:
+            return out_interface
+
+        try:
+            out_interface_name = socket.if_indextoname(out_interface)
+        except OSError:
+            out_interface_name = 'unknown'
+
+        return out_interface_name
 
     def get_hw(self):
         """Return the packet's source MAC address as a Python bytestring, or
