@@ -23,6 +23,7 @@ async def test_comms_without_queue(harness):
 async def test_queue_dropping(harness):
     async def drop(packets, msg):
         async for packet in packets:
+            assert "UDP packet" in str(packet)
             if packet.get_payload()[28:] == msg:
                 packet.drop()
             else:
@@ -190,6 +191,7 @@ async def test_errors(harness):
 async def test_unretained(harness):
     def cb(chan, pkt):
         # Can access payload within callback
+        assert "UDP packet" in str(pkt)
         assert pkt.get_payload()[-3:] in (b"one", b"two")
         chan.send_nowait(pkt)
 
@@ -202,6 +204,7 @@ async def test_unretained(harness):
                 RuntimeError, match="Payload data is no longer available"
             ):
                 p.get_payload()
+            assert "contents unretained" in str(p)
             # Can still issue verdicts though
             if accept:
                 p.accept()
