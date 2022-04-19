@@ -3,7 +3,7 @@ from setuptools import setup, Extension
 
 exec(open("netfilterqueue/_version.py", encoding="utf-8").read())
 
-setup_requires = []
+setup_requires = ["wheel"]
 try:
     # Use Cython
     from Cython.Build import cythonize
@@ -21,7 +21,7 @@ except ImportError:
     if "egg_info" in sys.argv:
         # We're being run by pip to figure out what we need. Request cython in
         # setup_requires below.
-        setup_requires = ["cython"]
+        setup_requires += ["cython"]
     elif not os.path.exists(
         os.path.join(os.path.dirname(__file__), "netfilterqueue/_impl.c")
     ):

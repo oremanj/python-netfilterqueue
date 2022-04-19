@@ -57,7 +57,15 @@ cdef class Packet:
         self._given_payload = None
 
     def __str__(self):
-        cdef iphdr *hdr = <iphdr*>self.payload
+        cdef unsigned char *payload = NULL
+        if self._owned_payload:
+            payload = self._owned_payload
+        elif self.payload != NULL:
+            payload = self.payload
+        else:
+            return "%d byte packet, contents unretained" % (self.payload_len,)
+
+        cdef iphdr *hdr = <iphdr*>payload
         protocol = PROTOCOLS.get(hdr.protocol, "Unknown protocol")
         return "%s packet, %s bytes" % (protocol, self.payload_len)
 
