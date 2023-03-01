@@ -217,6 +217,18 @@ Objects of this type are passed to your callback.
     into our queue. Values 0 through 4 correspond to PREROUTING, INPUT,
     FORWARD, OUTPUT, and POSTROUTING respectively.
 
+``Packet.indev``, ``Packet.outdev``, ``Packet.physindev``, ``Packet.physoutdev``
+    The interface indices on which the packet arrived (``indev``) or is slated
+    to depart (``outdev``). These are integers, which can be converted to
+    names like "eth0" by using ``socket.if_indextoname()``. Zero means
+    no interface is applicable, either because the packet was locally generated
+    or locally received, or because the interface information wasn't available
+    when the packet was queued (for example, ``PREROUTING`` rules don't yet
+    know the ``outdev``). If the ``indev`` or ``outdev`` refers to a bridge
+    device, then the corresponding ``physindev`` or ``physoutdev`` will name
+    the bridge member on which the actual traffic occurred; otherwise
+    ``physindev`` and ``physoutdev`` will be zero.
+
 ``Packet.retain()``
     Allocate a copy of the packet payload for use after the callback
     has returned. ``get_payload()`` will raise an exception at that

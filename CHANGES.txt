@@ -1,3 +1,6 @@
+v1.1.0, unreleased
+    Add Packet accessors for {indev, outdev, physindev, physoutdev} interface indices
+
 v1.0.0, 14 Jan 2022
     Propagate exceptions raised by the user's packet callback
     Avoid calls to the packet callback during queue unbinding

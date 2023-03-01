@@ -153,7 +153,11 @@ cdef extern from "libnetfilter_queue/libnetfilter_queue.h":
     int nfq_get_payload(nfq_data *nfad, unsigned char **data)
     int nfq_get_timestamp(nfq_data *nfad, timeval *tv)
     nfqnl_msg_packet_hw *nfq_get_packet_hw(nfq_data *nfad)
-    int nfq_get_nfmark (nfq_data *nfad)
+    int nfq_get_nfmark(nfq_data *nfad)
+    u_int32_t nfq_get_indev(nfq_data *nfad)
+    u_int32_t nfq_get_outdev(nfq_data *nfad)
+    u_int32_t nfq_get_physindev(nfq_data *nfad)
+    u_int32_t nfq_get_physoutdev(nfq_data *nfad)
     nfnl_handle *nfq_nfnlh(nfq_handle *h)
 
 # Dummy defines from linux/socket.h:
@@ -184,8 +188,7 @@ cdef class NetfilterQueue:
 
 cdef class Packet:
     cdef NetfilterQueue _queue
-    cdef bint _verdict_is_set # True if verdict has been issued,
-        # false otherwise
+    cdef bint _verdict_is_set # True if verdict has been issued, false otherwise
     cdef bint _mark_is_set # True if a mark has been given, false otherwise
     cdef bint _hwaddr_is_set
     cdef bint _timestamp_is_set
@@ -204,13 +207,10 @@ cdef class Packet:
     cdef unsigned char *payload
     cdef timeval timestamp
     cdef u_int8_t hw_addr[8]
-
-    # TODO: implement these
-    #cdef readonly u_int32_t nfmark
-    #cdef readonly u_int32_t indev
-    #cdef readonly u_int32_t physindev
-    #cdef readonly u_int32_t outdev
-    #cdef readonly u_int32_t physoutdev
+    cdef readonly u_int32_t indev
+    cdef readonly u_int32_t physindev
+    cdef readonly u_int32_t outdev
+    cdef readonly u_int32_t physoutdev
 
     cdef set_nfq_data(self, NetfilterQueue queue, nfq_data *nfa)
     cdef drop_refs(self)
