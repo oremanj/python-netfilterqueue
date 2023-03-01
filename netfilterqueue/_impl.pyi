@@ -11,6 +11,11 @@ class Packet:
     hw_protocol: int
     id: int
     mark: int
+    # These are ifindexes, pass to socket.if_indextoname() to get names:
+    indev: int
+    outdev: int
+    physindev: int
+    physoutdev: int
     def get_hw(self) -> Optional[bytes]: ...
     def get_payload(self) -> bytes: ...
     def get_payload_len(self) -> int: ...

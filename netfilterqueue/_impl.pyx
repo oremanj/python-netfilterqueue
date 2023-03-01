@@ -99,6 +99,10 @@ cdef class Packet:
 
         nfq_get_timestamp(nfa, &self.timestamp)
         self.mark = nfq_get_nfmark(nfa)
+        self.indev = nfq_get_indev(nfa)
+        self.outdev = nfq_get_outdev(nfa)
+        self.physindev = nfq_get_physindev(nfa)
+        self.physoutdev = nfq_get_physoutdev(nfa)
 
     cdef drop_refs(self):
         """

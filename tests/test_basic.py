@@ -119,11 +119,13 @@ async def test_mark_repeat(harness):
     assert t0 < timestamps[0] < t1
 
 
-async def test_hwaddr(harness):
+async def test_hwaddr_and_inoutdev(harness):
     hwaddrs = []
+    inoutdevs = []
 
     def cb(pkt):
         hwaddrs.append((pkt.get_hw(), pkt.hook, pkt.get_payload()[28:]))
+        inoutdevs.append((pkt.indev, pkt.outdev))
         pkt.accept()
 
     queue_num, nfq = harness.bind_queue(cb)
@@ -160,6 +162,20 @@ async def test_hwaddr(harness):
         (mac1, FORWARD, b"two"),
         (None, OUTPUT, b"three"),
         (None, OUTPUT, b"four"),
+    ]
+
+    if sys.implementation.name != "pypy":
+        # pypy doesn't appear to provide if_nametoindex()
+        iface1 = socket.if_nametoindex("veth1")
+        iface2 = socket.if_nametoindex("veth2")
+    else:
+        iface1, iface2 = inoutdevs[0]
+    assert 0 != iface1 != iface2 != 0
+    assert inoutdevs == [
+        (iface1, iface2),
+        (iface1, iface2),
+        (0, iface2),
+        (0, iface2),
     ]
 
 
