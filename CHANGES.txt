@@ -1,4 +1,4 @@
-v1.1.0, unreleased
+v1.1.0, 1 Mar 2023
     Add Packet accessors for {indev, outdev, physindev, physoutdev} interface indices
 
 v1.0.0, 14 Jan 2022
