@@ -79,7 +79,7 @@ Before installing, ensure you have:
 
 On Debian or Ubuntu, install these files with::
 
-    apt-get install build-essential python-dev libnetfilter-queue-dev
+    apt-get install build-essential python3-dev libnetfilter-queue-dev
 
 From PyPI
 ---------
