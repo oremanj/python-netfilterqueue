@@ -14,7 +14,7 @@ attrs==21.4.0
     #   outcome
     #   pytest
     #   trio
-black==21.12b0
+black==24.3.0
     # via -r test-requirements.in
 click==8.0.3
     # via black
@@ -32,8 +32,10 @@ outcome==1.1.0
     # via
     #   pytest-trio
     #   trio
-packaging==21.3
-    # via pytest
+packaging==24.0
+    # via
+    #   black
+    #   pytest
 pathspec==0.9.0
     # via black
 platformdirs==2.4.0
@@ -44,8 +46,6 @@ pluggy==1.0.0
     # via pytest
 py==1.11.0
     # via pytest
-pyparsing==3.0.6
-    # via packaging
 pytest==6.2.5
     # via
     #   -r test-requirements.in
